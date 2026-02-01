@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:wealth_bridge_impex/screens/live_price_screen.dart';
 import 'package:wealth_bridge_impex/screens/register_screen.dart';
 import 'package:wealth_bridge_impex/services/api_service.dart';
+import 'package:wealth_bridge_impex/utils/input_decoration.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,15 +13,39 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _mobileController = TextEditingController();
+  final _formKey = GlobalKey<FormState>(); // Form key for validation
+  final TextEditingController _emailOrMobileController =
+      TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _isValidEmail(String value) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value);
+  }
+
+  // bool _isValidMobile(String value) {
+  //   return RegExp(r'^[0-9]{10}$').hasMatch(value);
+  // }
+
+  // Computed property for enabling/disabling button
+  bool get _isFormValid {
+    final input = _emailOrMobileController.text.trim();
+    final isNumeric = RegExp(r'^[0-9]+$').hasMatch(input);
+
+    if (isNumeric) {
+      return input.length == 10 &&
+          _passwordController.text.trim().length >= 4;
+    } else {
+      return _isValidEmail(input) &&
+          _passwordController.text.trim().length >= 4;
+    }
+  }
 
   @override
   void dispose() {
-    _mobileController.dispose();
+    _emailOrMobileController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -39,147 +65,149 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Align(
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    controller: _mobileController,
-                    keyboardType: TextInputType.phone,
-                    textInputAction: TextInputAction.next,
-                    cursorColor: Colors.black,
-                    decoration: InputDecoration(
-                      labelText: 'Mobile Number',
-                      labelStyle: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                      floatingLabelStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black, width: 2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    textInputAction: TextInputAction.done,
-                    cursorColor: Colors.black,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                      floatingLabelStyle: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                      ),
-                      enabledBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey),
-                      ),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black, width: 2),
-                      ),
-                    ),
-                  ),
-                  // TextField(
-                  //   keyboardType: TextInputType.number,
-                  //   cursorColor: Colors.black,
-                  //   textInputAction: TextInputAction.done,
-                  //   decoration: InputDecoration(
-                  //     labelText: 'OTP',
-                  //     labelStyle: TextStyle(
-                  //       fontSize: 16,
-                  //       color: Colors.grey[600],
-                  //     ),
-                  //     floatingLabelStyle: TextStyle(
-                  //       color: Colors.black,
-                  //       fontSize: 18,
-                  //     ),
-                  //     suffixIcon: TextButton(
-                  //       onPressed: () {
-                  //         // Implement OTP sending functionality here
-                  //       },
-                  //       child: const Text(
-                  //         'Send OTP',
-                  //         style: TextStyle(color: Colors.blue),
-                  //       ),
-                  //     ),
-                  //     enabledBorder: OutlineInputBorder(
-                  //       borderSide: BorderSide(color: Colors.grey),
-                  //     ),
-                  //     focusedBorder: OutlineInputBorder(
-                  //       borderSide: BorderSide(color: Colors.black, width: 2),
-                  //     ),
-                  //   ),
-                  // ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      backgroundColor: const Color(0xffF9B236),
-                      foregroundColor: Colors.black,
-                    ),
-                    onPressed: _isLoading ? null : _onLoginPressed,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.black,
-                            ),
-                          )
-                        : const Text('Login', style: TextStyle(fontSize: 18)),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Don\'t have an account?',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RegisterScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Register',
-                          style: TextStyle(color: Colors.blue),
+              child: Form(
+                key: _formKey, // Attach Form key
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    SizedBox(height: 20),
+                    TextFormField(
+                      controller: _emailOrMobileController,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [
+                        AutofillHints.username,
+                        AutofillHints.email,
+                      ],
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'[0-9a-zA-Z@._-]'),
+                        ),
+                        LengthLimitingTextInputFormatter(
+                          50, // enough for email, mobile stops at 10 logically
+                        ),
+                      ],
+                      onChanged: (_) => setState(() {}),
+                      validator: (value) {
+                        final input = value?.trim() ?? '';
+
+                        if (input.isEmpty) {
+                          return 'Email or mobile is required';
+                        }
+
+                        final isNumeric =
+                            RegExp(r'^[0-9]+$').hasMatch(input);
+
+                        // UPDATED: numeric input = mobile
+                        if (isNumeric) {
+                          if (input.length != 10) {
+                            return 'Mobile number must be 10 digits';
+                          }
+                        }
+                        // else treat as email
+                        else if (!_isValidEmail(input)) {
+                          return 'Enter valid email address';
+                        }
+
+                        return null;
+                      },
+                      cursorColor: Colors.black,
+                      decoration: AppDecorations.textField(
+                        label: 'Email / Mobile',
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      textInputAction: TextInputAction.done,
+                      onChanged: (_) => setState(() {}),
+                      validator: (value) {
+                        if (value == null || value.trim().length < 4) {
+                          return 'Password must be at least 4 characters';
+                        }
+                        return null;
+                      },
+                      cursorColor: Colors.black,
+                      decoration: AppDecorations.textField(
+                        label: 'Password',
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        backgroundColor: const Color(0xffF9B236),
+                        foregroundColor: Colors.black,
+                      ),
+                      onPressed: _isLoading || !_isFormValid
+                          ? null
+                          : _onLoginPressed,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Text('Login', style: TextStyle(fontSize: 18)),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Don\'t have an account?',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Register',
+                            style: TextStyle(color: Colors.blue),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -189,16 +217,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _onLoginPressed() async {
-    if (_mobileController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showMessage('Please enter mobile number and password');
-      return;
-    }
-
+    if (!_formKey.currentState!.validate()) return;
+    // Safety check, Only proceed if all validators passs
     setState(() => _isLoading = true);
 
     try {
       final response = await _apiService.loginUser(
-        username: _mobileController.text.trim(),
+        emailOrMobile: _emailOrMobileController.text.trim(),
         password: _passwordController.text.trim(),
       );
 

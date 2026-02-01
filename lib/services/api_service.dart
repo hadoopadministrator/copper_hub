@@ -13,15 +13,31 @@ class ApiService {
     required String email,
     required String mobile,
     required String password,
+    required String address,
+    required String pincode,
+    String? landmark, // optional
+    String? gst, // optional
   }) async {
-    final Uri url = Uri.parse('$_baseUrl/RegisterUser').replace(
-      queryParameters: {
-        'fullname': fullName,
-        'email': email,
-        'mobile': mobile,
-        'password': password,
-      },
-    );
+    final Map<String, String> queryParams = {
+      'fullname': fullName,
+      'email': email,
+      'mobile': mobile,
+      'password': password,
+      'address': address,
+      'pincode': pincode,
+    };
+
+    if (landmark != null && landmark.isNotEmpty) {
+      queryParams['landmark'] = landmark;
+    }
+
+    if (gst != null && gst.isNotEmpty) {
+      queryParams['gst'] = gst;
+    }
+
+    final Uri url = Uri.parse(
+      '$_baseUrl/RegisterUser',
+    ).replace(queryParameters: queryParams);
 
     debugPrint('Register API URL: $url');
 
@@ -31,36 +47,35 @@ class ApiService {
       if (response.statusCode == 200) {
         debugPrint('Register Raw Response: ${response.body}');
 
-        // Remove XML wrapper
-        final cleanText = response.body
+        // Remove XML wrapper ONLY
+        final jsonFormat = response.body
             .replaceAll(RegExp(r'<[^>]*>'), '')
-            .trim()
-            .toLowerCase();
+            .trim();
 
-        debugPrint('Register Clean Text: $cleanText');
+        debugPrint('Register Clean JSON: $jsonFormat');
 
-       if (cleanText == 'success') {
-        return {
-          'success': true,
-          'message': 'Registration successful',
-        };
-      } else if (cleanText.contains('already')) {
-        return {
-          'success': false,
-          'message': 'User already exists',
-        };
+        final Map<String, dynamic> jsonData = jsonDecode(jsonFormat);
+
+        final String status =
+            jsonData['Status']?.toString().toLowerCase() ?? '';
+
+        final String message =
+            jsonData['Message']?.toString() ?? 'Registration failed';
+
+        if (status == 'success') {
+          return {'success': true, 'message': message};
+        } else {
+          return {
+            'success': false,
+            'message': message, // e.g. User Already Exists
+          };
+        }
       } else {
         return {
           'success': false,
-          'message': 'Registration failed',
+          'message': 'Server error: ${response.statusCode}',
         };
       }
-    } else {
-      return {
-        'success': false,
-        'message': 'Server error: ${response.statusCode}',
-      };
-    }
     } catch (e) {
       debugPrint('Register Error: $e');
       return {'success': false, 'message': 'Something went wrong'};
@@ -69,12 +84,12 @@ class ApiService {
 
   /// LOGIN USER (GET)
   Future<Map<String, dynamic>> loginUser({
-    required String username,
+    required String emailOrMobile,
     required String password,
   }) async {
-    final Uri url = Uri.parse(
-      '$_baseUrl/LoginUser',
-    ).replace(queryParameters: {'username': username, 'password': password});
+    final Uri url = Uri.parse('$_baseUrl/LoginUser').replace(
+      queryParameters: {'emailOrMobile': emailOrMobile, 'password': password},
+    );
 
     debugPrint('Login API URL: $url');
 
@@ -82,32 +97,36 @@ class ApiService {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        debugPrint('Login Raw Response: ${response.body}');
         // Remove XML wrapper
-        final xmlRemoved = response.body
+        final cleanText = response.body
             .replaceAll(RegExp(r'<[^>]*>'), '')
             .trim();
 
-        debugPrint('Login Clean JSON: $xmlRemoved');
-        // Decode JSON
-        final Map<String, dynamic> userData = jsonDecode(xmlRemoved);
+        debugPrint('Login Clean JSON: $cleanText');
 
-        // Check login success
-        if (userData.containsKey('ID')) {
+        final Map<String, dynamic> jsonData = jsonDecode(cleanText);
+
+        final status = jsonData['Status']?.toString().toLowerCase();
+
+        if (status == 'success') {
           return {
             'success': true,
             'message': 'Login successful',
-            'data': userData,
+            'data': jsonData,
           };
-        } else {
-          return {'success': false, 'message': 'Invalid mobile or password'};
         }
-      } else {
+
+        // Invalid credentials or failure
         return {
           'success': false,
-          'message': 'Server error: ${response.statusCode}',
+          'message': jsonData['Message'] ?? 'Invalid login credentials',
         };
       }
+
+      return {
+        'success': false,
+        'message': 'Server error: ${response.statusCode}',
+      };
     } catch (e) {
       debugPrint('Login Error: $e');
       return {'success': false, 'message': 'Something went wrong'};
