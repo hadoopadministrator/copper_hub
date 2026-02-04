@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wealth_bridge_impex/screens/login_screen.dart';
+import 'package:wealth_bridge_impex/routes/app_routes.dart';
 import 'package:wealth_bridge_impex/services/api_service.dart';
 import 'package:wealth_bridge_impex/utils/input_decoration.dart';
 
@@ -60,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: const Color(0xffF5F6FA),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: Center(
             child: Card(
               color: Colors.white,
@@ -72,7 +72,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 key: _formKey, // Attach Form key
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 24,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -94,7 +97,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.name,
                         textInputAction: TextInputAction.next,
                         cursorColor: Colors.black,
-                        decoration: AppDecorations.textField(label: 'Full Name'),
+                        decoration: AppDecorations.textField(
+                          label: 'Full Name',
+                        ),
                         onChanged: (_) => setState(() {}),
                         validator: (value) {
                           if (value == null || value.trim().length < 2) {
@@ -196,7 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                                
+
                       TextFormField(
                         controller: _pincodeController,
                         keyboardType: TextInputType.number,
@@ -222,12 +227,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _gstController,
                         textInputAction: TextInputAction.done,
                         decoration: AppDecorations.textField(
-                          label: 'GST Number (optional)',
+                          label: 'GST Number',
                         ),
                         validator: (value) {
-                          if (value != null &&
-                              value.isNotEmpty &&
-                              value.length < 10) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'GST Number is required';
+                          }
+                          if (value.trim().length < 10) {
                             return 'Invalid GST number';
                           }
                           return null;
@@ -277,7 +283,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                             child: const Text(
                               'Login',
-                              style: TextStyle(fontSize: 16, color: Colors.blue),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.blue,
+                              ),
                             ),
                           ),
                         ],
@@ -294,40 +303,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _onRegisterPressed() async {
-    if (!_formKey.currentState!.validate()) return;
-    // Safety check, Only proceed if all validators pass
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-
-    try {
-      final response = await _apiService.registerUser(
-        fullName: _fullNameController.text.trim(),
-        email: _emailController.text.trim(),
-        mobile: _mobileController.text.trim(),
-        password: _passwordController.text.trim(),
-        address: _addressController.text.trim(),
-        landmark: _landmarkController.text.trim(),
-        pincode: _pincodeController.text.trim(),
-        gst: _gstController.text.trim(),
-      );
-      if (!mounted) return;
-      debugPrint('Response---- ${response.toString()}');
-      if (response['success'] == true) {
-        _showMessage('Registration successful!');
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
-      } else {
-        _showMessage(response['message'] ?? 'Registration failed');
-      }
-    } catch (e) {
-      // Network error, server error, etc.
-      _showMessage('Something went wrong. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+  if (_gstController.text.trim().isEmpty) {
+    _showMessage('Please enter GST');
+    return;
   }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final response = await _apiService.registerUser(
+      fullName: _fullNameController.text.trim(),
+      email: _emailController.text.trim(),
+      mobile: _mobileController.text.trim(),
+      password: _passwordController.text.trim(),
+      address: _addressController.text.trim(),
+      landmark: _landmarkController.text.trim(),
+      pincode: _pincodeController.text.trim(),
+      gst: _gstController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    debugPrint('Response---- $response');
+
+    final bool isSuccess = response['success'] == true;
+    final String message =
+        response['message']?.toString() ??
+        (isSuccess ? 'Registration successful' : 'Registration failed');
+
+    _showMessage(message);
+
+    if (isSuccess) {
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
+    }
+  } catch (e) {
+    _showMessage('Something went wrong. Please try again.');
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
+  }
+}
+
 
   void _showMessage(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));

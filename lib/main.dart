@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wealth_bridge_impex/screens/splash_screen.dart';
+import 'package:wealth_bridge_impex/routes/app_routes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +14,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Wealth Bridge Impex',
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
+      initialRoute: AppRoutes.splash,
+      routes: AppRoutes.routes,
     );
   }
 }
