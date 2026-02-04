@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wealth_bridge_impex/screens/live_price_screen.dart';
-import 'package:wealth_bridge_impex/screens/register_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wealth_bridge_impex/routes/app_routes.dart';
 import 'package:wealth_bridge_impex/services/api_service.dart';
 import 'package:wealth_bridge_impex/utils/input_decoration.dart';
 
@@ -21,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
   bool _obscurePassword = true;
+   bool remember = false;
   bool _isValidEmail(String value) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value);
   }
@@ -35,8 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isNumeric = RegExp(r'^[0-9]+$').hasMatch(input);
 
     if (isNumeric) {
-      return input.length == 10 &&
-          _passwordController.text.trim().length >= 4;
+      return input.length == 10 && _passwordController.text.trim().length >= 4;
     } else {
       return _isValidEmail(input) &&
           _passwordController.text.trim().length >= 4;
@@ -108,8 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           return 'Email or mobile is required';
                         }
 
-                        final isNumeric =
-                            RegExp(r'^[0-9]+$').hasMatch(input);
+                        final isNumeric = RegExp(r'^[0-9]+$').hasMatch(input);
 
                         // UPDATED: numeric input = mobile
                         if (isNumeric) {
@@ -157,8 +156,38 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
+                    ),const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: remember,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                            activeColor: Colors.blue,
+                            onChanged: (value) {
+                              setState(() => remember = value ?? false);
+                            },
+                          ),
+                          Text(
+                            'Remember me',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, AppRoutes.forgot);
+                            },
+                            child: Text(
+                              'Forgot passsword?',
+                              style: TextStyle(
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 24),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -188,16 +217,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           'Don\'t have an account?',
-                          style: TextStyle(color: Colors.grey[600]),
+                          style: TextStyle(color: Colors.grey[700]),
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterScreen(),
-                              ),
-                            );
+                            Navigator.pushNamed(context, AppRoutes.register);
                           },
                           child: const Text(
                             'Register',
@@ -216,6 +240,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> _saveLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+  }
+
   Future<void> _onLoginPressed() async {
     if (!_formKey.currentState!.validate()) return;
     // Safety check, Only proceed if all validators passs
@@ -223,28 +252,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await _apiService.loginUser(
-        emailOrMobile: _emailOrMobileController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      emailOrMobile: _emailOrMobileController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
 
+    final bool isSuccess = response['success'] == true;
+    final String message =
+        (response['message']?.toString().isNotEmpty ?? false)
+            ? response['message']
+            : (isSuccess ? 'Login successful' : 'Login failed');
+
+    if (isSuccess) {
+      await _saveLoginStatus();
+      _showMessage(message);
       if (!mounted) return;
-
-      if (response['success'] == true) {
-        _showMessage(response['message'] ?? 'Login successful');
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LivePriceScreen()),
-        );
-      } else {
-        _showMessage(response['message'] ?? 'Login failed');
-      }
-    } catch (e) {
-      // network / unexpected error
-      _showMessage('Something went wrong. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      Navigator.pushReplacementNamed(context, AppRoutes.liveRates);
+    } else {
+      _showMessage(message);
     }
+    } catch (e) {
+    _showMessage('Something went wrong. Please try again.');
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
+  }
   }
 
   void _showMessage(String msg) {
