@@ -21,7 +21,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
           /// HEADER
           DrawerHeader(
             decoration: const BoxDecoration(color: Colors.white),
-            child: Image.asset('assets/logo/logo.jpeg', fit: BoxFit.contain),
+            child: Image.asset('assets/logo/logo.png', fit: BoxFit.contain),
           ),
 
           /// LIVE PRICES (HOME)
@@ -57,12 +57,6 @@ class _DrawerWidgetState extends State<DrawerWidget> {
             title: const Text('Order History', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context); // close drawer
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   const SnackBar(
-              //     content: Text('Coming Soon!'),
-              //     duration: Duration(seconds: 2),
-              //   ),
-              // );
               Navigator.pushNamed(context, AppRoutes.orderHistory);
             },
           ),
@@ -91,7 +85,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
           ),
           /// CONTACT US
           ListTile(
-            leading: const Icon(Icons.contact_mail, color: Colors.black),
+            leading: const Icon(Icons.contact_support, color: Colors.black),
             title: const Text('Contact Us', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context);

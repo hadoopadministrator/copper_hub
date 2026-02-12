@@ -42,15 +42,15 @@ class _SplashScreenState extends State<SplashScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/logo/logo.jpeg',
-                  width: 305,
+                  'assets/logo/logo.png',
+                  width: 280,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Wealth Bridge Impex',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+                // const SizedBox(height: 16),
+                // Text(
+                //   'Wealth Bridge Impex',
+                //   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                // ),
                 const SizedBox(height: 10),
                 Text(
                   'Bridging Global Trade & Wealth',

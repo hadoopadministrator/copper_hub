@@ -65,7 +65,7 @@ class ApiService {
     }
   }
 
-  /// LOGIN USER (GET)
+ 
   /// LOGIN USER (GET)
  Future<Map<String, dynamic>> loginUser({
   required String emailOrMobile,
@@ -211,6 +211,7 @@ Future<Map<String, dynamic>> getLiveCopperRate() async {
     final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
 
     final Map<String, dynamic> data = jsonDecode(cleanJson);
+        debugPrint('LiveCopper Rates: $data');
 
     return {'success': true, 'data': data};
   } catch (e) {
