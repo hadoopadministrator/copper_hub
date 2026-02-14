@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wealth_bridge_impex/services/auth_storage.dart';
 // import 'package:wealth_bridge_impex/routes/app_routes.dart';
 import 'package:wealth_bridge_impex/services/cart_database_service.dart';
 import 'package:wealth_bridge_impex/services/payment_service.dart';
@@ -19,6 +20,8 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
 
   List<CartItemModel> cartItems = [];
   bool _loading = true;
+  String? userEmail;
+  String? userMobile;
 
   String _selectedOption = 'Physical Delivery';
 
@@ -30,8 +33,19 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUser();
     _loadCart();
-     paymentService.initPayment();
+    paymentService.initPayment();
+  }
+
+  Future<void> _loadUser() async {
+    final email = await AuthStorage.getEmail();
+    final mobile = await AuthStorage.getMobile();
+
+    setState(() {
+      userEmail = email;
+      userMobile = mobile;
+    });
   }
 
   Future<void> _loadCart() async {
@@ -280,7 +294,18 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
                 width: double.infinity,
                 text: 'Confirm Checkout',
                 onPressed: () {
-                   paymentService.openCheckout(500);
+                  if (userEmail == null || userMobile == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("User details not loaded")),
+                    );
+                    return;
+                  }
+                  paymentService.openCheckout(
+                    amount: finalTotal,
+                    email: userEmail!,
+                    contact: userMobile!,
+                  );
+                  // debugPrint("RazorPayEnd----------");
                   // Navigator.pushNamed(context, AppRoutes.orderSuccess);
                 },
               ),
@@ -289,7 +314,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
         ),
       ),
     );
-  
   }
 }
 
