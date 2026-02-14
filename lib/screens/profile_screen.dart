@@ -136,6 +136,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         gst: gst,
       );
 
+      // UPDATE LOCAL STORAGE HERE
+      await AuthStorage.saveLoginData(
+        userId: _userId!,
+        name: fullName,
+        email: email,
+        mobile: mobile,
+      );
+
       if (!mounted) return;
 
       setState(() => isEditing = false);

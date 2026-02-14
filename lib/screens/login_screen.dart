@@ -236,9 +236,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (isSuccess) {
         final data = response['data'];
-
         await AuthStorage.saveLoginData(
           userId: data['Id'],
+          name: data['FullName'],
           email: data['Email'],
           mobile: data['Mobile'],
         );
@@ -251,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _showMessage(message);
       }
     } catch (e) {
-      _showMessage('Something went wrong. Please try again.');
+      _showMessage('Something went wrong. Please try again');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

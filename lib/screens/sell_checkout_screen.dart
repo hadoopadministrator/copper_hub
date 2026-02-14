@@ -186,7 +186,7 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
                 width: double.infinity,
                 text: 'Confirm Checkout',
                 onPressed: () {
-                   paymentService.openCheckout(500);
+                  //  paymentService.openCheckout(500);
                   // Navigator.pushNamed(context, AppRoutes.orderSuccess);
                 },
               ),

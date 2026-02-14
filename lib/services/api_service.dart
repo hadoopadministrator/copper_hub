@@ -82,6 +82,7 @@ class ApiService {
     final response = await http.get(url);
 
     if (response.statusCode != 200) {
+      
       return {'success': false, 'message': 'Server error'};
     }
 
@@ -92,8 +93,9 @@ class ApiService {
 
     final bool isSuccess =
         jsonData['Status']?.toString().toLowerCase() == 'success';
-
+  //  print('Login:${jsonData}');
     return {
+      
       'success': isSuccess,
       'message': jsonData['Message'] ??
           (isSuccess ? 'Login successful' : 'Login failed'),
@@ -211,7 +213,7 @@ Future<Map<String, dynamic>> getLiveCopperRate() async {
     final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
 
     final Map<String, dynamic> data = jsonDecode(cleanJson);
-        // debugPrint('LiveCopper Rates: $data');
+      //  print('LiveCopper Rates: $data');
 
     return {'success': true, 'data': data};
   } catch (e) {
@@ -219,5 +221,59 @@ Future<Map<String, dynamic>> getLiveCopperRate() async {
     return {'success': false, 'message': 'Something went wrong'};
   }
 }
+
+/// ADD TO CART (GET)
+Future<Map<String, dynamic>> addToCart({
+  required int userId,
+  required String slabName,
+  required double pricePerKg,
+  required int qty,
+  required int minWeight,
+  required int maxWeight,
+}) async {
+  final Uri url = Uri.parse('$_baseUrl/AddToCart').replace(
+    queryParameters: {
+      'user_id': userId.toString(),
+      'slabName': slabName,
+      'pricePerKg': pricePerKg.toString(),
+      'qty': qty.toString(),
+      'minWeight': minWeight.toString(),
+      'maxWeight': maxWeight.toString(),
+    },
+  );
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      return {
+        'success': false,
+        'message': 'Server error: ${response.statusCode}',
+      };
+    }
+
+    // Remove XML wrapper
+    final cleanJson =
+        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+    final bool isSuccess =
+        jsonData['Status']?.toString().toLowerCase() == 'success';
+
+    return {
+      'success': isSuccess,
+      'message': jsonData['Message'] ??
+          (isSuccess ? 'Added to cart' : 'Failed to add to cart'),
+      'data': jsonData,
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Something went wrong',
+    };
+  }
+}
+
 
 }
