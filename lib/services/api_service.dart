@@ -275,5 +275,54 @@ Future<Map<String, dynamic>> addToCart({
   }
 }
 
+/// PLACE ORDER FROM CART (POST)
+Future<Map<String, dynamic>> placeOrderFromCart({
+  required int userId,
+  required String razorpayPaymentId,
+  required String deliveryOption,
+  String? gst,
+  String? courier,
+}) async {
+  final Uri url = Uri.parse('$_baseUrl/PlaceOrderFromCart');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {
+        'user_id': userId.toString(),
+        'razorpay_payment_id': razorpayPaymentId,
+        'delivery_option': deliveryOption,
+        'gst': gst ?? '',
+        'courier': courier ?? '',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      return {
+        'success': false,
+        'message': 'Server error: ${response.statusCode}',
+      };
+    }
+
+    // Remove XML wrapper
+    final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+    final bool isSuccess =
+        jsonData['Status']?.toString().toLowerCase() == 'success';
+
+    return {
+      'success': isSuccess,
+      'message': jsonData['Message'] ?? (isSuccess ? 'Order placed' : 'Failed'),
+      'data': jsonData,
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Something went wrong',
+    };
+  }
+}
 
 }

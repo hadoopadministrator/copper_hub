@@ -195,11 +195,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      backgroundColor: const Color(0xffF5F6FA),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: AppColors.white,
+        iconTheme: const IconThemeData(color: AppColors.black),
         title: const Text(
           'Profile',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
@@ -225,7 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -259,7 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -319,24 +319,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: double.infinity,
                         onPressed: _updateProfile,
                       ),
-                      // SizedBox(
-                      //   width: double.infinity,
-                      //   child: ElevatedButton(
-                      //     onPressed: _updateProfile,
-                      //     style: ElevatedButton.styleFrom(
-                      //       backgroundColor: const Color(0xffF9B236),
-                      //       foregroundColor: Colors.black,
-                      //       padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      //       shape: RoundedRectangleBorder(
-                      //         borderRadius: BorderRadius.circular(8.0),
-                      //       ),
-                      //     ),
-                      //     child: const Text(
-                      //       'Save Changes',
-                      //       style: TextStyle(fontSize: 16),
-                      //     ),
-                      //   ),
-                      // ),
                     ],
                   ],
                 ),

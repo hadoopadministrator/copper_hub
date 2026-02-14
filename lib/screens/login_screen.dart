@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:wealth_bridge_impex/routes/app_routes.dart';
 import 'package:wealth_bridge_impex/services/api_service.dart';
 import 'package:wealth_bridge_impex/services/auth_storage.dart';
+import 'package:wealth_bridge_impex/utils/app_colors.dart';
 import 'package:wealth_bridge_impex/utils/input_decoration.dart';
 import 'package:wealth_bridge_impex/widgets/custom_button.dart';
 
@@ -54,12 +55,12 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF5F6FA),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: Card(
             margin: const EdgeInsets.only(left: 16.0, right: 16.0),
-            color: Colors.white,
+            color: AppColors.white,
             elevation: 8.0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16.0),
@@ -122,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         return null;
                       },
-                      cursorColor: Colors.black,
+                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Email / Mobile',
                       ),
@@ -139,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                         return null;
                       },
-                      cursorColor: Colors.black,
+                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Password',
                         suffixIcon: IconButton(
@@ -171,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         Text(
                           'Remember me',
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(color: AppColors.black),
                         ),
                         const Spacer(),
                         TextButton(

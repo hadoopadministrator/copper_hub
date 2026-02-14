@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:wealth_bridge_impex/models/cart_item_model.dart';
 import 'package:wealth_bridge_impex/services/cart_database_service.dart';
 import 'package:wealth_bridge_impex/services/payment_service.dart';
+import 'package:wealth_bridge_impex/utils/app_colors.dart';
+import 'package:wealth_bridge_impex/utils/input_decoration.dart';
 import 'package:wealth_bridge_impex/widgets/custom_button.dart';
+import 'package:wealth_bridge_impex/widgets/summary_row_card.dart';
 
 class SellCheckoutScreen extends StatefulWidget {
   const SellCheckoutScreen({super.key});
@@ -12,9 +15,9 @@ class SellCheckoutScreen extends StatefulWidget {
 }
 
 class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
-
   final PaymentService paymentService = PaymentService();
-
+  late TextEditingController _qtyController;
+  late int _quantity;
   List<CartItemModel> cartItems = [];
   bool _loading = true;
 
@@ -29,7 +32,7 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
   void initState() {
     super.initState();
     _loadCart();
-     paymentService.initPayment();
+    //  paymentService.initPayment();s
   }
 
   Future<void> _loadCart() async {
@@ -40,7 +43,20 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
     });
   }
 
+  void _incrementQty() {
+    setState(() {
+      _quantity++;
+      _qtyController.text = _quantity.toString();
+    });
+  }
 
+  void _decrementQty() {
+    if (_quantity <= 1) return;
+    setState(() {
+      _quantity--;
+      _qtyController.text = _quantity.toString();
+    });
+  }
   // ---------------- calculations ----------------
 
   double get totalQty => cartItems.fold(0, (sum, e) => sum + e.qty);
@@ -67,6 +83,7 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
         return Icons.local_shipping;
     }
   }
+
   @override
   void dispose() {
     paymentService.dispose();
@@ -75,15 +92,15 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-   if (_loading) {
+    if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: AppColors.white,
+        iconTheme: const IconThemeData(color: AppColors.black),
         title: const Text(
           'Check Out',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
@@ -107,12 +124,59 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
                 label: 'Price',
                 value: totalPrice.toStringAsFixed(2),
               ),
+              const Text(
+                "Quantity (KG)",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xfff8f9fa),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey, width: 1),
+                ),
+                child: Text(
+                  totalQty.toStringAsFixed(2),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+
+              TextField(
+                controller: _qtyController,
+                keyboardType: TextInputType.number,
+                cursorColor: AppColors.black,
+                textInputAction: TextInputAction.done,
+                decoration: AppDecorations.textField(
+                  label: '',
+                  suffixIcon: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      InkWell(
+                        onTap: _incrementQty,
+                        child: const Icon(Icons.keyboard_arrow_up, size: 22),
+                      ),
+                      InkWell(
+                        onTap: _decrementQty,
+                        child: const Icon(Icons.keyboard_arrow_down, size: 22),
+                      ),
+                    ],
+                  ),
+                ),
+                onChanged: (value) {
+                  final parsed = int.tryParse(value);
+                  if (parsed != null && parsed > 0) {
+                    setState(() => _quantity = parsed);
+                  }
+                },
+              ),
               const SizedBox(height: 24),
               SummaryRowCard(
                 label: 'Quantity (KG)',
                 value: totalQty.toStringAsFixed(2),
               ),
-              
+
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -121,7 +185,7 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
                     'Delivery Option',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.black,
+                      color: AppColors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -130,15 +194,15 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade400),
                       borderRadius: BorderRadius.circular(6),
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                     child: DropdownButton<String>(
                       value: _selectedOption,
                       underline: const SizedBox(),
-                      dropdownColor: Colors.white,
+                      dropdownColor: AppColors.white,
                       icon: const Icon(
                         Icons.keyboard_arrow_down,
-                        color: Colors.black,
+                        color: AppColors.black,
                       ),
                       items: _options.map((option) {
                         return DropdownMenuItem(
@@ -194,43 +258,6 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
           ),
         ),
       ),
-    );
-
-  }
-}
-class SummaryRowCard extends StatelessWidget {
-  final String label;
-  final String value;
-  const SummaryRowCard({super.key, required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xfff8f9fa),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey, width: 1),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(color: Colors.black, fontSize: 16),
-          ),
-        ),
-      ],
     );
   }
 }

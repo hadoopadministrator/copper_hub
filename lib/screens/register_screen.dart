@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wealth_bridge_impex/routes/app_routes.dart';
 import 'package:wealth_bridge_impex/services/api_service.dart';
+import 'package:wealth_bridge_impex/utils/app_colors.dart';
 import 'package:wealth_bridge_impex/utils/input_decoration.dart';
 import 'package:wealth_bridge_impex/widgets/custom_button.dart';
 
@@ -58,13 +59,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF5F6FA),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: Center(
             child: Card(
-              color: Colors.white,
+              color: AppColors.white,
               elevation: 8.0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.0),
@@ -97,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _fullNameController,
                         keyboardType: TextInputType.name,
                         textInputAction: TextInputAction.next,
-                        cursorColor: Colors.black,
+                        cursorColor: AppColors.black,
                         decoration: AppDecorations.textField(
                           label: 'Full Name',
                         ),
@@ -114,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
-                        cursorColor: Colors.black,
+                        cursorColor: AppColors.black,
                         decoration: AppDecorations.textField(
                           label: 'Email Address',
                         ),
@@ -136,7 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(10),
                         ],
-                        cursorColor: Colors.black,
+                        cursorColor: AppColors.black,
                         onChanged: (_) => setState(() {}),
                         decoration: AppDecorations.textField(
                           label: 'Mobile Number',
@@ -154,7 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         textInputAction: TextInputAction.done,
-                        cursorColor: Colors.black,
+                        cursorColor: AppColors.black,
                         onChanged: (_) => setState(() {}),
                         decoration: AppDecorations.textField(
                           label: 'Password',
@@ -183,7 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _addressController,
                         textInputAction: TextInputAction.next,
                         maxLines: 3,
-                        cursorColor: Colors.black,
+                        cursorColor: AppColors.black,
                         decoration: AppDecorations.textField(label: 'Address'),
                         onChanged: (_) => setState(() {}),
                         validator: (value) {

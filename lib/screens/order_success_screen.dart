@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wealth_bridge_impex/routes/app_routes.dart';
+import 'package:wealth_bridge_impex/utils/app_colors.dart';
 import 'package:wealth_bridge_impex/widgets/custom_button.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
@@ -8,7 +9,7 @@ class OrderSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF5F6FA),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -20,10 +21,10 @@ class OrderSuccessScreen extends StatelessWidget {
                 height: 100,
                 width: 100,
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: AppColors.greenLight,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: Colors.white, size: 60),
+                child: const Icon(Icons.check, color: AppColors.white, size: 60),
               ),
 
               const SizedBox(height: 24),

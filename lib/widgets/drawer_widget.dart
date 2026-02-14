@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wealth_bridge_impex/routes/app_routes.dart';
 import 'package:wealth_bridge_impex/services/auth_storage.dart';
+import 'package:wealth_bridge_impex/utils/app_colors.dart';
 
 class DrawerWidget extends StatefulWidget {
   const DrawerWidget({super.key});
@@ -14,20 +15,20 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: const Color(0xffF5F6FA),
+      backgroundColor: AppColors.background,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           /// HEADER
           DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.white),
+            decoration: const BoxDecoration(color: AppColors.white),
             child: Image.asset('assets/logo/logo.png', fit: BoxFit.contain),
           ),
 
           /// LIVE PRICES (HOME)
           /// Always go back to first/root screen
           ListTile(
-            leading: const Icon(Icons.home, color: Colors.black),
+            leading: const Icon(Icons.home, color: AppColors.black),
             title: const Text('Live Prices', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pushNamedAndRemoveUntil(
@@ -41,7 +42,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
           /// PROFILE
           /// Normal push, back press should return to previous screen
           ListTile(
-            leading: const Icon(Icons.person, color: Colors.black),
+            leading: const Icon(Icons.person, color: AppColors.black),
             title: const Text('Profile', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context); // close drawer
@@ -53,7 +54,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
           /// Drawer se hamesha simple push
           /// Never clear stack here
           ListTile(
-            leading: const Icon(Icons.history, color: Colors.black),
+            leading: const Icon(Icons.history, color: AppColors.black),
             title: const Text('Order History', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context); // close drawer
@@ -63,7 +64,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
           /// VISIT WEBSITE
           ListTile(
-            leading: const Icon(Icons.web, color: Colors.black),
+            leading: const Icon(Icons.web, color: AppColors.black),
             title: const Text(
               'Visit our Website',
               style: TextStyle(fontSize: 18),
@@ -83,9 +84,10 @@ class _DrawerWidgetState extends State<DrawerWidget> {
               }
             },
           ),
+
           /// CONTACT US
           ListTile(
-            leading: const Icon(Icons.contact_support, color: Colors.black),
+            leading: const Icon(Icons.contact_support, color: AppColors.black),
             title: const Text('Contact Us', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context);
@@ -95,7 +97,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
           /// About US
           ListTile(
-            leading: const Icon(Icons.info_outline, color: Colors.black),
+            leading: const Icon(Icons.info_outline, color: AppColors.black),
             title: const Text('About Us', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context);
@@ -105,7 +107,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
           /// SHARE APP
           ListTile(
-            leading: const Icon(Icons.share, color: Colors.black),
+            leading: const Icon(Icons.share, color: AppColors.black),
             title: const Text('Share this App', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context);
@@ -120,7 +122,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
           /// RATE APP
           ListTile(
-            leading: const Icon(Icons.star, color: Colors.black),
+            leading: const Icon(Icons.star, color: AppColors.black),
             title: const Text('Rate this App', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context);
@@ -136,7 +138,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
           /// LOGOUT
           /// Clear full stack and go to Login
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.black),
+            leading: const Icon(Icons.logout, color: AppColors.black),
             title: const Text('Logout', style: TextStyle(fontSize: 18)),
             onTap: _logout,
           ),

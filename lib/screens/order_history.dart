@@ -125,7 +125,7 @@ class _OrderHistoryState extends State<OrderHistory> {
                   child: Text(
                     "BUY",
                     style: TextStyle(
-                      color: selectedTab == 0 ? Colors.white : Colors.black,
+                      color: selectedTab == 0 ? AppColors.white : AppColors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -155,7 +155,7 @@ class _OrderHistoryState extends State<OrderHistory> {
                   child: Text(
                     "SELL",
                     style: TextStyle(
-                      color: selectedTab == 1 ? Colors.white : Colors.black,
+                      color: selectedTab == 1 ? AppColors.white : AppColors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),

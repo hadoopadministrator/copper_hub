@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wealth_bridge_impex/utils/app_colors.dart';
 
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
@@ -6,9 +7,9 @@ class AboutUsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         title: const Text("About Us"),
         elevation: 0,
       ),
@@ -71,7 +72,7 @@ class InfoRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(fontSize: 13, color: Colors.white),
+                style: TextStyle(fontSize: 13, color: AppColors.white),
               ),
               const SizedBox(height: 2),
               Text(
@@ -79,7 +80,7 @@ class InfoRow extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white
+                  color: AppColors.white
                 ),
               ),
             ],

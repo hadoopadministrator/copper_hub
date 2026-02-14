@@ -179,7 +179,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
+                            color: AppColors.black.withValues(alpha: 0.2),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -193,12 +193,12 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                           // Text(
                           //   "Last Updated: ${_lastUpdated != null ? DateFormat('HH:mm:ss').format(_lastUpdated!) : '--'}",
-                          //   style: TextStyle(color: Colors.white),
+                          //   style: TextStyle(color: AppColors.white),
                           // ),
                           Row(
                             children: [

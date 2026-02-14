@@ -64,7 +64,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                 TextFormField(
                   controller: _nameController,
                   textInputAction: TextInputAction.next,
-                  cursorColor: Colors.black,
+                  cursorColor: AppColors.black,
                   autofillHints: const [AutofillHints.name],
                   decoration: AppDecorations.textField(label: 'Your Name'),
                   validator: (value) {
@@ -79,7 +79,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  cursorColor: Colors.black,
+                  cursorColor: AppColors.black,
                   autofillHints: const [AutofillHints.email],
                   decoration: AppDecorations.textField(label: "Your Email"),
                   validator: (value) {
@@ -96,7 +96,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                 TextFormField(
                   controller: _subjectController,
                   textInputAction: TextInputAction.next,
-                  cursorColor: Colors.black,
+                  cursorColor: AppColors.black,
                   decoration: AppDecorations.textField(label: "Subject"),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -110,7 +110,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                   controller: _messageController,
                   keyboardType: TextInputType.multiline,
                   textInputAction: TextInputAction.done,
-                  cursorColor: Colors.black,
+                  cursorColor: AppColors.black,
                   maxLines: 4,
                   decoration: AppDecorations.textField(label: "Your Message"),
                   validator: (value) {

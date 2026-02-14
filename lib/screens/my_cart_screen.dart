@@ -59,11 +59,11 @@ class _MyCartScreenState extends State<MyCartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF5F6FA),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: AppColors.white,
+        iconTheme: const IconThemeData(color: AppColors.black),
         title: const Text(
           'My Cart',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
@@ -87,7 +87,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -186,7 +186,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                     horizontal: 16,
                     vertical: 24,
                   ),
-                  color: Colors.white,
+                  color: AppColors.white,
                   child: Column(
                     children: [
                       Text(

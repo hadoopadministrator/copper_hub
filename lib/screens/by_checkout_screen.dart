@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wealth_bridge_impex/services/auth_storage.dart';
-// import 'package:wealth_bridge_impex/routes/app_routes.dart';
 import 'package:wealth_bridge_impex/services/cart_database_service.dart';
 import 'package:wealth_bridge_impex/services/payment_service.dart';
 import 'package:wealth_bridge_impex/widgets/custom_button.dart';
 import 'package:wealth_bridge_impex/models/cart_item_model.dart';
+import 'package:wealth_bridge_impex/widgets/summary_row_card.dart';
 
 class ByCheckoutScreen extends StatefulWidget {
   const ByCheckoutScreen({super.key});
@@ -14,14 +14,15 @@ class ByCheckoutScreen extends StatefulWidget {
 }
 
 class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
-  // late TextEditingController _qtyController;
-  // late int _quantity;
+  
   final PaymentService paymentService = PaymentService();
 
   List<CartItemModel> cartItems = [];
   bool _loading = true;
+
   String? userEmail;
   String? userMobile;
+  int? userId;
 
   String _selectedOption = 'Physical Delivery';
 
@@ -41,10 +42,12 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   Future<void> _loadUser() async {
     final email = await AuthStorage.getEmail();
     final mobile = await AuthStorage.getMobile();
+    final id = await AuthStorage.getUserId();
 
     setState(() {
       userEmail = email;
       userMobile = mobile;
+      userId = id;
     });
   }
 
@@ -55,31 +58,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       _loading = false;
     });
   }
-
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-
-  //   if (!_initialized) {
-  //     final args = ModalRoute.of(context)?.settings.arguments;
-  //     if (args is CartItemModel) {
-  //       cartItem = args;
-  //       _quantity = cartItem.qty.toInt();
-  //     } else {
-  //       // fallback if argument missing
-  //       cartItem = CartItemModel(
-  //         slab: 'Unknown',
-  //         price: 0,
-  //         qty: 1,
-  //         amount: 0,
-  //         createdAt: DateTime.now().toString(),
-  //       );
-  //       _quantity = 1;
-  //     }
-  //     _qtyController = TextEditingController(text: _quantity.toString());
-  //     _initialized = true;
-  //   }
-  // }
 
   // ---------------- calculations ----------------
 
@@ -109,20 +87,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     }
   }
 
-  // void _incrementQty() {
-  //   setState(() {
-  //     _quantity++;
-  //     _qtyController.text = _quantity.toString();
-  //   });
-  // }
-
-  // void _decrementQty() {
-  //   if (_quantity <= 1) return;
-  //   setState(() {
-  //     _quantity--;
-  //     _qtyController.text = _quantity.toString();
-  //   });
-  // }
+  
 
   @override
   void dispose() {
@@ -130,10 +95,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     super.dispose();
   }
 
-  // double get subTotal => cartItem.price * _quantity;
-  // double get gst => subTotal * 0.18; // 18% GST
-  // double get courierCharges => 250; // fixed for now
-  // double get finalTotal => subTotal + gst + courierCharges;
 
   @override
   Widget build(BuildContext context) {
@@ -174,53 +135,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
                 label: 'Quantity (KG)',
                 value: totalQty.toStringAsFixed(2),
               ),
-              // const Text(
-              //   "Quantity (KG)",
-              //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              // ),
-              // const SizedBox(height: 8),
-              // Container(
-              //   width: double.infinity,
-              //   padding: const EdgeInsets.all(14),
-              //   decoration: BoxDecoration(
-              //     color: const Color(0xfff8f9fa),
-              //     borderRadius: BorderRadius.circular(8),
-              //     border: Border.all(color: Colors.grey, width: 1),
-              //   ),
-              //   child: Text(
-              //     totalQty.toStringAsFixed(2),
-              //     style: const TextStyle(fontSize: 16),
-              //   ),
-              // ),
-
-              // TextField(
-              //   controller: _qtyController,
-              //   keyboardType: TextInputType.number,
-              //   cursorColor: Colors.black,
-              //   textInputAction: TextInputAction.done,
-              //   decoration: AppDecorations.textField(
-              //     label: '',
-              //     suffixIcon: Column(
-              //       mainAxisAlignment: MainAxisAlignment.center,
-              //       children: [
-              //         InkWell(
-              //           onTap: _incrementQty,
-              //           child: const Icon(Icons.keyboard_arrow_up, size: 22),
-              //         ),
-              //         InkWell(
-              //           onTap: _decrementQty,
-              //           child: const Icon(Icons.keyboard_arrow_down, size: 22),
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              //   onChanged: (value) {
-              //     final parsed = int.tryParse(value);
-              //     if (parsed != null && parsed > 0) {
-              //       setState(() => _quantity = parsed);
-              //     }
-              //   },
-              // ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -317,39 +231,3 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   }
 }
 
-class SummaryRowCard extends StatelessWidget {
-  final String label;
-  final String value;
-  const SummaryRowCard({super.key, required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xfff8f9fa),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey, width: 1),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(color: Colors.black, fontSize: 16),
-          ),
-        ),
-      ],
-    );
-  }
-}

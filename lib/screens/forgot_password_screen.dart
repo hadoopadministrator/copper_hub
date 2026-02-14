@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wealth_bridge_impex/routes/app_routes.dart';
+import 'package:wealth_bridge_impex/utils/app_colors.dart';
 import 'package:wealth_bridge_impex/utils/input_decoration.dart';
+import 'package:wealth_bridge_impex/widgets/custom_button.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -10,7 +12,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
- final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
 
   // Email validator helper
@@ -19,16 +21,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   @override
-void dispose() {
-  _emailController.dispose();
-  super.dispose();
-}
-
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: GestureDetector(
           // dismiss keyboard on outside tap
@@ -36,7 +37,7 @@ void dispose() {
           child: Center(
             child: Card(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              color: Colors.white,
+              color: AppColors.white,
               elevation: 8.0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.0),
@@ -65,10 +66,7 @@ void dispose() {
                         child: Text(
                           'Enter your registered email to receive reset instructions',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
                         ),
                       ),
                       SizedBox(height: 24),
@@ -89,38 +87,24 @@ void dispose() {
                         },
                       ),
                       const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            backgroundColor: const Color(0xffF9B236),
-                            foregroundColor: Colors.black,
-                          ),
-                          onPressed: () {
-                            if (!_formKey.currentState!.validate()) return;
+                      CustomButton(
+                        text: 'Send Reset Link',
+                        onPressed: () {
+                          if (!_formKey.currentState!.validate()) return;
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Password reset link sent to your email',
-                                ),
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Password reset link sent to your email',
                               ),
-                            );
+                            ),
+                          );
 
-                            Navigator.pushReplacementNamed(
-                              context,
-                              AppRoutes.login,
-                            );
-                          },
-                          child: Text(
-                            'Send Reset Link',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ),
+                          Navigator.pushReplacementNamed(
+                            context,
+                            AppRoutes.login,
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -136,9 +120,7 @@ void dispose() {
                             },
                             child: Text(
                               'Login',
-                              style: TextStyle(
-                                color: Colors.blue
-                              ),
+                              style: TextStyle(color: Colors.blue),
                             ),
                           ),
                         ],
