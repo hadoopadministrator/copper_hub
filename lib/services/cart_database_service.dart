@@ -25,7 +25,7 @@ class CartDatabaseService {
     await db.execute('''
       CREATE TABLE cart_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        slabId INTEGER NOT NULL,
+        slabId INTEGER NOT NULL UNIQUE,
         slab TEXT NOT NULL,
         buyPrice REAL NOT NULL,
         sellPrice REAL NOT NULL,
@@ -58,7 +58,7 @@ class CartDatabaseService {
     );
     if (existing.isNotEmpty) {
       final existingItem = CartItemModel.fromMap(existing.first);
-      final updated = existingItem.copyWith(qty: existingItem.qty + item.qty);
+      final updated = existingItem.copyWith(qty: item.qty);
 
       await db.update(
         'cart_items',
@@ -79,23 +79,39 @@ class CartDatabaseService {
   Future<void> updateQty(int id, double qty) async {
     final db = await database;
 
-     final item = (await db.query(
-    'cart_items',
-    where: 'id = ?',
-    whereArgs: [id],
-  )).first;
+    final item = (await db.query(
+      'cart_items',
+      where: 'id = ?',
+      whereArgs: [id],
+    )).first;
 
-  final buyPrice = (item['buyPrice'] as num).toDouble();
+    final buyPrice = (item['buyPrice'] as num).toDouble();
 
-  await db.update(
-    'cart_items',
-    {
-      'qty': qty,
-      'amount': qty * buyPrice,
-    },
-    where: 'id = ?',
-    whereArgs: [id],
-  );
+    await db.update(
+      'cart_items',
+      {'qty': qty, 'amount': qty * buyPrice},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> updatePrice(int id, double newBuyPrice) async {
+    final db = await database;
+
+    final item = (await db.query(
+      'cart_items',
+      where: 'id = ?',
+      whereArgs: [id],
+    )).first;
+
+    final qty = (item['qty'] as num).toDouble();
+
+    await db.update(
+      'cart_items',
+      {'buyPrice': newBuyPrice, 'amount': qty * newBuyPrice},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   /// Remove single item

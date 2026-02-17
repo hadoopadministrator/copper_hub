@@ -6,6 +6,7 @@ import 'package:wealth_bridge_impex/services/cart_database_service.dart';
 import 'package:wealth_bridge_impex/services/payment_service.dart';
 import 'package:wealth_bridge_impex/widgets/custom_button.dart';
 import 'package:wealth_bridge_impex/models/cart_item_model.dart';
+import 'package:wealth_bridge_impex/widgets/custom_dropdown.dart';
 import 'package:wealth_bridge_impex/widgets/summary_row_card.dart';
 
 class ByCheckoutScreen extends StatefulWidget {
@@ -16,8 +17,10 @@ class ByCheckoutScreen extends StatefulWidget {
 }
 
 class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
+
   final PaymentService paymentService = PaymentService();
   final ApiService apiService = ApiService();
+  
   List<CartItemModel> cartItems = [];
   bool _loading = true;
 
@@ -35,8 +38,9 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUser();
-    _loadCart();
+
+   _initCheckout();
+
     paymentService.initPayment(
       onSuccess: (paymentId) {
         _placeOrder(paymentId);
@@ -49,6 +53,13 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     );
   }
 
+  Future<void> _initCheckout() async {
+    await _loadUser();
+    await _syncCartWithLiveRates();
+  }
+
+
+
   Future<void> _loadUser() async {
     final email = await AuthStorage.getEmail();
     final mobile = await AuthStorage.getMobile();
@@ -60,6 +71,60 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       userId = id;
     });
   }
+
+    // ================= SYNC CART WITH LIVE RATES =================
+
+  Future<void> _syncCartWithLiveRates() async {
+
+    setState(() => _loading = true);
+
+    final result = await apiService.getLiveCopperRate();
+
+    if (result['success'] == true) {
+
+      final data = result['data'];
+
+      final slabs = data['Slabs'] as List;
+
+      final db = CartDatabaseService.instance;
+
+      final items = await db.getCartItems();
+
+      for (final item in items) {
+
+        final liveSlab = slabs.firstWhere(
+              (s) => s['Id'] == item.slabId,
+          orElse: () => null,
+        );
+
+        if (liveSlab != null) {
+
+          final newBuyPrice =
+          double.parse(liveSlab['BuyPrice']);
+
+          await db.updatePrice(
+            item.id!,
+            newBuyPrice,
+          );
+        }
+      }
+
+      await _loadCart();
+    }
+    else {
+
+      setState(() => _loading = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['message'] ?? "Failed to sync prices",
+          ),
+        ),
+      );
+    }
+  }
+
 
   Future<void> _loadCart() async {
     final items = await CartDatabaseService.instance.getCartItems();
@@ -143,56 +208,17 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
                 value: totalQty.toStringAsFixed(2),
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Delivery Option',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(6),
-                      color: Colors.white,
-                    ),
-                    child: DropdownButton<String>(
-                      value: _selectedOption,
-                      underline: const SizedBox(),
-                      dropdownColor: Colors.white,
-                      icon: const Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Colors.black,
-                      ),
-                      items: _options.map((option) {
-                        return DropdownMenuItem(
-                          value: option,
-                          child: Row(
-                            children: [
-                              Icon(
-                                _getDeliveryIcon(option),
-                                size: 18,
-                                color: const Color(0xffF9B236),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(option),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _selectedOption = value);
-                      },
-                    ),
-                  ),
-                ],
+
+              CustomDropdown(
+                label: 'Delivery Option',
+                value: _selectedOption,
+                items: _options,
+                iconBuilder: _getDeliveryIcon,
+                onChanged: (value) {
+                  setState(() => _selectedOption = value);
+                },
               ),
+
               const SizedBox(height: 24),
               SummaryRowCard(label: 'GST (18%)', value: gst.toStringAsFixed(2)),
               const SizedBox(height: 24),

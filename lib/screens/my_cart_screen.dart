@@ -33,19 +33,77 @@ class _MyCartScreenState extends State<MyCartScreen> {
     _loadCart();
   }
 
+  ({int min, int? max}) getQtyLimitsFromSlab(String slabName) {
+  final clean = slabName.replaceAll('KG', '').trim();
+
+  // fractional slabs
+  if (clean.startsWith('0.25') || clean.startsWith('0.5')) {
+    return (min: 1, max: null);
+  }
+
+  // range slabs
+  if (clean.contains('-')) {
+    final parts = clean.split('-');
+    return (
+      min: int.parse(parts[0].trim()),
+      max: int.parse(parts[1].trim()),
+    );
+  }
+
+  // plus slabs
+  if (clean.contains('+')) {
+    return (
+      min: int.parse(clean.replaceAll('+', '').trim()),
+      max: null,
+    );
+  }
+
+  return (min: 1, max: null);
+}
+
+
   // ---------------- ACTIONS ----------------
   Future<void> _increaseQty(CartItemModel item) async {
-    final newQty = item.qty + 1;
-    await _db.updateQty(item.id!, newQty,);
-    _loadCart();
-  }
-  Future<void> _decreaseQty(CartItemModel item) async {
-    if (item.qty <= 1) return;
+  final limits = getQtyLimitsFromSlab(item.slab);
+  final maxQty = limits.max;
 
-    final newQty = item.qty - 1;
-    await _db.updateQty(item.id!, newQty,);
-    _loadCart();
+  if (maxQty != null && item.qty >= maxQty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Maximum limit is $maxQty KG for this slab"),
+      ),
+    );
+    return;
   }
+
+  final newQty = item.qty + 1;
+
+  await _db.updateQty(item.id!, newQty);
+
+  _loadCart();
+}
+
+ Future<void> _decreaseQty(CartItemModel item) async {
+  final limits = getQtyLimitsFromSlab(item.slab);
+  final minQty = limits.min;
+
+  if (item.qty <= minQty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Minimum limit is $minQty KG for this slab"),
+      ),
+    );
+    return;
+  }
+
+  final newQty = item.qty - 1;
+
+  await _db.updateQty(item.id!, newQty);
+
+  _loadCart();
+}
+
+
   Future<void> _removeItem(int id) async {
     await _db.deleteItem(id);
     _loadCart();

@@ -378,4 +378,43 @@ Future<Map<String, dynamic>> getOrderById({required int orderId}) async {
   }
 }
 
+/// GET SHIPMENTS BY USER
+Future<Map<String, dynamic>> getShipments({required int userId}) async {
+  final Uri url = Uri.parse('$_baseUrl/GetShipments').replace(
+    queryParameters: {'user_id': userId.toString()},
+  );
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      return {
+        'success': false,
+        'message': 'Server error: ${response.statusCode}',
+      };
+    }
+
+    // Remove XML wrapper
+    final cleanJson =
+        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+    // Decode JSON list
+    final List<dynamic> jsonData = jsonDecode(cleanJson);
+
+    // Convert to List<Map<String, dynamic>>
+    final shipments =
+        List<Map<String, dynamic>>.from(jsonData);
+
+    return {
+      'success': true,
+      'data': shipments,
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Something went wrong',
+    };
+  }
+}
+
 }

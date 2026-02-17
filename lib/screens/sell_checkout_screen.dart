@@ -5,6 +5,7 @@ import 'package:wealth_bridge_impex/services/payment_service.dart';
 import 'package:wealth_bridge_impex/utils/app_colors.dart';
 import 'package:wealth_bridge_impex/utils/input_decoration.dart';
 import 'package:wealth_bridge_impex/widgets/custom_button.dart';
+import 'package:wealth_bridge_impex/widgets/custom_dropdown.dart';
 import 'package:wealth_bridge_impex/widgets/summary_row_card.dart';
 
 class SellCheckoutScreen extends StatefulWidget {
@@ -88,7 +89,6 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
 
   @override
   void dispose() {
-    paymentService.dispose();
     super.dispose();
   }
 
@@ -150,27 +150,16 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
                   /// Lot dropdown (UI only)
                   Expanded(
                     flex: 2,
-                    child: DropdownButtonFormField<String>(
-                      initialValue: 'Lot 1 - 60 KG',
-                      decoration: AppDecorations.textField(label: 'Select Lot'),
+                    child: CustomDropdown(
+                      label: 'Select Lot',
+                      value: selectedLot,
                       items: const [
-                        DropdownMenuItem(
-                          value: 'Lot 1 - 60 KG',
-                          child: Text('Lot 1 - 60 KG'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Lot 2 - 70 KG',
-                          child: Text('Lot 2 - 70 KG'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Lot 3 - 100 KG',
-                          child: Text('Lot 3 - 100 KG'),
-                        ),
+                        'Lot 1 - 60 KG',
+                        'Lot 2 - 70 KG',
+                        'Lot 3 - 100 KG',
                       ],
                       onChanged: (value) {
-                        setState(() {
-                          selectedLot = value!;
-                        });
+                        setState(() => selectedLot = value);
                       },
                     ),
                   ),
@@ -217,61 +206,14 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              // SummaryRowCard(
-              //   label: 'Quantity (KG)',
-              //   value: totalQty.toStringAsFixed(2),
-              // ),
-
-              // const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Delivery Option',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(6),
-                      color: AppColors.white,
-                    ),
-                    child: DropdownButton<String>(
-                      value: _selectedOption,
-                      underline: const SizedBox(),
-                      dropdownColor: AppColors.white,
-                      icon: const Icon(
-                        Icons.keyboard_arrow_down,
-                        color: AppColors.black,
-                      ),
-                      items: _options.map((option) {
-                        return DropdownMenuItem(
-                          value: option,
-                          child: Row(
-                            children: [
-                              Icon(
-                                _getDeliveryIcon(option),
-                                size: 18,
-                                color: const Color(0xffF9B236),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(option),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _selectedOption = value);
-                      },
-                    ),
-                  ),
-                ],
+              CustomDropdown(
+                label: 'Delivery Option',
+                value: _selectedOption,
+                items: _options,
+                iconBuilder: _getDeliveryIcon,
+                onChanged: (value) {
+                  setState(() => _selectedOption = value);
+                },
               ),
               const SizedBox(height: 24),
               SummaryRowCard(label: 'GST (18%)', value: gst.toStringAsFixed(2)),

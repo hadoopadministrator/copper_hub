@@ -393,7 +393,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
         minWeight: minQty,
         maxWeight: maxQty ?? unitQty,
       );
-      debugPrint("ADD TO CART API RESULT: $apiResult");
+      debugPrint("ADD TO CART API RESULT: $slab");
       if (apiResult['success'] != true) {
         return false;
       }
