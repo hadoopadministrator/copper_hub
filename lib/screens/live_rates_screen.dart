@@ -280,24 +280,18 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                                     vertical: 12,
                                     horizontal: 14,
                                   ),
-                                  onPressed: ()  {
-                                    // final messenger = ScaffoldMessenger.of(
-                                    //   context,
-                                    // );
-                                    // messenger.showSnackBar(
-                                    //   SnackBar(
-                                    //     content: Text(
-                                    //       'This Feature is Coming Soon...',
-                                    //     ),
-                                    //   ),
-                                    // );
-                                    final navigator = Navigator.of(context);
-                                    // await _addToCart(
-                                    //   index: index,
-                                    //   slab: slab,
-                                    //   slabName: slabName,
-                                    // );
-                                    navigator.pushNamed(AppRoutes.sellCheckOut);
+
+                                  onPressed: () async {
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
+                                    messenger.showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'You can only sell slabs you have purchased',
+                                        ),
+                                      ),
+                                    );
                                   },
                                 ),
                               ),
