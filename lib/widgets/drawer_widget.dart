@@ -114,7 +114,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
               final messenger = ScaffoldMessenger.of(context);
               Navigator.pop(context);
               final Uri url = Uri.parse(
-                'https://wealthbridgeimpex.com/',
+                'https://wealthbridgeimpex.com/privacy_policy.html',
               );
               if (await canLaunchUrl(url)) {
                 await launchUrl(url, mode: LaunchMode.externalApplication);
