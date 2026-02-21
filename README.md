@@ -7,7 +7,7 @@ Copper Hub is a Flutter-based mobile application that allows users to buy and se
 ## Features
 
 - Live copper rate updates
-- Buy copper using available slabs
+- Buy/Sell copper using available slabs
 - Add items to cart
 - Secure checkout with payment integration
 - Order history tracking
