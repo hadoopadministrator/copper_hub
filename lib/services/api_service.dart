@@ -462,4 +462,52 @@ Future<Map<String, dynamic>> getShipments({required int userId}) async {
   }
 }
 
+/// CHECK IF USER CAN SELL
+Future<Map<String, dynamic>> canUserSell({
+  required int userId,
+  required String slab,
+  required double qty,
+}) async {
+  final Uri url = Uri.parse('$_baseUrl/CanUserSell').replace(
+    queryParameters: {
+      'user_id': userId.toString(),
+      'slab': slab,
+      'qty': qty.toString(),
+    },
+  );
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      return {
+        'success': false,
+        'message': 'Server error: ${response.statusCode}',
+      };
+    }
+
+    final cleanJson =
+        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+    final bool isSuccess =
+        jsonData['Status']?.toString().toLowerCase() == 'success';
+
+    return {
+      'success': isSuccess,
+      'message': jsonData['Message'] ??
+          (isSuccess
+              ? 'You can sell'
+              : 'Cannot sell'),
+      'data': jsonData,
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Something went wrong',
+    };
+  }
+}
+
 }

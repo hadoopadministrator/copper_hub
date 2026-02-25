@@ -285,13 +285,59 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                                     final messenger = ScaffoldMessenger.of(
                                       context,
                                     );
-                                    messenger.showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'You can only sell slabs you have purchased',
+
+                                    final int unitQty = _quantities[index] ?? 0;
+
+                                    if (unitQty <= 0) {
+                                      messenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Please select quantity",
+                                          ),
                                         ),
-                                      ),
+                                      );
+                                      return;
+                                    }
+                                    final slabName = slab['SlabName'];
+                                    final userId =
+                                        await AuthStorage.getUserId();
+
+                                    if (userId == null) {
+                                      messenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Please login first"),
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    /// CALL CAN USER SELL API
+                                    final result = await apiService.canUserSell(
+                                      userId: userId,
+                                      slab: slabName,
+                                      qty: unitQty.toDouble(),
                                     );
+
+                                    if (!mounted) return;
+
+                                    if (result['success'] == true) {
+                                      messenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "You can sell this quantity",
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      messenger.showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            result['message'] ??
+                                                "No quantity available to sell",
+                                          ),
+                                        ),
+                                      );
+                                    }
                                   },
                                 ),
                               ),
