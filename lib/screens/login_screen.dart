@@ -15,9 +15,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  
   final _formKey = GlobalKey<FormState>(); // Form key for validation
-  final TextEditingController _emailOrMobileController = TextEditingController();
+  final TextEditingController _emailOrMobileController =
+      TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   final ApiService _apiService = ApiService();
@@ -28,9 +28,26 @@ class _LoginScreenState extends State<LoginScreen> {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value);
   }
 
-  // bool _isValidMobile(String value) {
-  //   return RegExp(r'^[0-9]{10}$').hasMatch(value);
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberMe();
+  }
+
+  Future<void> _loadRememberMe() async {
+    final isRemember = await AuthStorage.isRememberMe();
+
+    if (!isRemember) return;
+
+    final email = await AuthStorage.getEmail();
+    final password = await AuthStorage.getRememberPassword();
+
+    setState(() {
+      remember = true;
+      _emailOrMobileController.text = email ?? '';
+      _passwordController.text = password ?? '';
+    });
+  }
 
   // Computed property for enabling/disabling button
   bool get _isFormValid {
@@ -242,6 +259,12 @@ class _LoginScreenState extends State<LoginScreen> {
           name: data['FullName'],
           email: data['Email'],
           mobile: data['Mobile'],
+        );
+
+        await AuthStorage.saveRememberMe(
+          remember: remember,
+          emailOrMobile: _emailOrMobileController.text.trim(),
+          password: _passwordController.text.trim(),
         );
 
         _showMessage(message);

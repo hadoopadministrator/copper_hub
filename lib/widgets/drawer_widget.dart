@@ -173,17 +173,13 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
   /// LOGOUT WITH CONFIRMATION
   Future<void> _logout() async {
-
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Logout'),
-          content: const Text(
-            'Are you sure you want to logout?',
-          ),
+          content: const Text('Are you sure you want to logout?'),
           actions: [
-
             TextButton(
               onPressed: () {
                 Navigator.pop(context, false);
@@ -204,7 +200,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
     if (confirm != true) return;
 
-    await AuthStorage.clear();
+    await AuthStorage.logout();
 
     if (!mounted) return;
 
@@ -214,5 +210,4 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       (route) => false,
     );
   }
-
 }

@@ -386,7 +386,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (result['success'] == true) {
         // clear login storage
-        await AuthStorage.clear();
+        await AuthStorage.logout();
         await CartDatabaseService.instance.clearCart();
 
         if (!mounted) return;
