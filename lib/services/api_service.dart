@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String _baseUrl =
-      'https://wealthbridgeimpex.com/webservice.asmx';
+      'https://wealthbridgeimpex.com/WebService2.asmx';
+  // 'https://wealthbridgeimpex.com/webservice.asmx';
 
   /// REGISTER USER (GET)
   Future<Map<String, dynamic>> registerUser({
@@ -189,51 +190,44 @@ class ApiService {
       return {'success': false, 'message': 'Something went wrong'};
     }
   }
-  
+
   /// DELETE USER ACCOUNT (GET)
-Future<Map<String, dynamic>> deleteUserAccount({
-  required int userId,
-}) async {
-  final Uri url = Uri.parse('$_baseUrl/DeleteUserAccount').replace(
-    queryParameters: {
-      'id': userId.toString(),
-    },
-  );
+  Future<Map<String, dynamic>> deleteUserAccount({required int userId}) async {
+    final Uri url = Uri.parse(
+      '$_baseUrl/DeleteUserAccount',
+    ).replace(queryParameters: {'id': userId.toString()});
 
-  try {
-    final response = await http.get(url);
+    try {
+      final response = await http.get(url);
 
-    if (response.statusCode != 200) {
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      // Remove XML wrapper
+      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess =
+          jsonData['Status']?.toString().toLowerCase() == 'success';
+
       return {
-        'success': false,
-        'message': 'Server error: ${response.statusCode}',
+        'success': isSuccess,
+        'message':
+            jsonData['Message'] ??
+            (isSuccess
+                ? 'Account deleted successfully'
+                : 'Failed to delete account'),
+        'data': jsonData,
       };
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
     }
-
-    // Remove XML wrapper
-    final cleanJson =
-        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-
-    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-    final bool isSuccess =
-        jsonData['Status']?.toString().toLowerCase() == 'success';
-
-    return {
-      'success': isSuccess,
-      'message': jsonData['Message'] ??
-          (isSuccess
-              ? 'Account deleted successfully'
-              : 'Failed to delete account'),
-      'data': jsonData,
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Something went wrong',
-    };
   }
-}
 
   /// GET LIVE COPPER RATE
   Future<Map<String, dynamic>> getLiveCopperRate() async {
@@ -360,154 +354,141 @@ Future<Map<String, dynamic>> deleteUserAccount({
     }
   }
 
-/// GET ORDERS BY USER
-Future<Map<String, dynamic>> getOrdersByUser({required int userId}) async {
-  final Uri url = Uri.parse('$_baseUrl/GetOrdersByUser').replace(
-    queryParameters: {'user_id': userId.toString()},
-  );
+  /// GET ORDERS BY USER
+  Future<Map<String, dynamic>> getOrdersByUser({required int userId}) async {
+    final Uri url = Uri.parse(
+      '$_baseUrl/GetOrdersByUser',
+    ).replace(queryParameters: {'user_id': userId.toString()});
 
-  try {
-    final response = await http.get(url);
+    try {
+      final response = await http.get(url);
 
-    if (response.statusCode != 200) {
-      return {'success': false, 'message': 'Server error: ${response.statusCode}'};
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      // Remove XML wrapper
+      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+      // Decode JSON
+      final List<dynamic> jsonData = jsonDecode(cleanJson);
+      // print('\ngetOrdersByUser:$jsonData\n');
+
+      return {'success': true, 'data': jsonData};
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
     }
-
-    // Remove XML wrapper
-    final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-
-    // Decode JSON
-    final List<dynamic> jsonData = jsonDecode(cleanJson);
-    // print('\ngetOrdersByUser:$jsonData\n');
-
-    return {
-      'success': true,
-      'data': jsonData,
-    };
-  } catch (e) {
-    return {'success': false, 'message': 'Something went wrong'};
   }
-}
 
-/// GET ORDER BY ID
-Future<Map<String, dynamic>> getOrderById({required int orderId}) async {
-  final Uri url = Uri.parse('$_baseUrl/GetOrderByID').replace(
-    queryParameters: {'id': orderId.toString()},
-  );
+  /// GET ORDER BY ID
+  Future<Map<String, dynamic>> getOrderById({required int orderId}) async {
+    final Uri url = Uri.parse(
+      '$_baseUrl/GetOrderByID',
+    ).replace(queryParameters: {'id': orderId.toString()});
 
-  try {
-    final response = await http.get(url);
+    try {
+      final response = await http.get(url);
 
-    if (response.statusCode != 200) {
-      return {'success': false, 'message': 'Server error: ${response.statusCode}'};
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      // Remove XML wrapper
+      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+      // Decode JSON
+      final List<dynamic> jsonData = jsonDecode(cleanJson);
+      // print('\ngetOrderById:$jsonData\n');
+
+      // Usually GetOrderByID returns a list with one object, extract first
+      final Map<String, dynamic> orderData = jsonData.isNotEmpty
+          ? Map<String, dynamic>.from(jsonData[0])
+          : {};
+
+      return {'success': true, 'data': orderData};
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
     }
-
-    // Remove XML wrapper
-    final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-
-    // Decode JSON
-    final List<dynamic> jsonData = jsonDecode(cleanJson);
-    // print('\ngetOrderById:$jsonData\n');
-
-
-    // Usually GetOrderByID returns a list with one object, extract first
-    final Map<String, dynamic> orderData =
-        jsonData.isNotEmpty ? Map<String, dynamic>.from(jsonData[0]) : {};
-
-    return {
-      'success': true,
-      'data': orderData,
-    };
-  } catch (e) {
-    return {'success': false, 'message': 'Something went wrong'};
   }
-}
 
-/// GET SHIPMENTS BY USER
-Future<Map<String, dynamic>> getShipments({required int userId}) async {
-  final Uri url = Uri.parse('$_baseUrl/GetShipments').replace(
-    queryParameters: {'user_id': userId.toString()},
-  );
+  /// GET SHIPMENTS BY USER
+  Future<Map<String, dynamic>> getShipments({required int userId}) async {
+    final Uri url = Uri.parse(
+      '$_baseUrl/GetShipments',
+    ).replace(queryParameters: {'user_id': userId.toString()});
 
-  try {
-    final response = await http.get(url);
+    try {
+      final response = await http.get(url);
 
-    if (response.statusCode != 200) {
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      // Remove XML wrapper
+      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+      // Decode JSON list
+      final List<dynamic> jsonData = jsonDecode(cleanJson);
+
+      // Convert to List<Map<String, dynamic>>
+      final shipments = List<Map<String, dynamic>>.from(jsonData);
+
+      return {'success': true, 'data': shipments};
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
+    }
+  }
+
+  /// CHECK IF USER CAN SELL
+  Future<Map<String, dynamic>> canUserSell({
+    required int userId,
+    required int slabId,
+    required int qty,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/CanUserSell');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'user_id': userId.toString(),
+          'slab_id': slabId.toString(),
+          'qty': qty.toString(),
+        },
+      );
+
+      if (response.statusCode != 200) {
+        return {'success': false, 'message': 'Server error'};
+      }
+
+      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+      final jsonData = jsonDecode(cleanJson);
+
+      // print('\canUserSell:$jsonData\n');
+
+
+      final bool isSuccess = jsonData['Status'] == 'Success';
+
       return {
-        'success': false,
-        'message': 'Server error: ${response.statusCode}',
+        'success': isSuccess,
+        'message': jsonData['Message'],
+        'remainingQty': jsonData['RemainingQty'],
+        'slabId': jsonData['SlabId'],
+        'requestedQty': jsonData['RequestedQty'],
       };
+    } catch (e) {
+      return {'success': false, 'message': 'Network error'};
     }
-
-    // Remove XML wrapper
-    final cleanJson =
-        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-
-    // Decode JSON list
-    final List<dynamic> jsonData = jsonDecode(cleanJson);
-
-    // Convert to List<Map<String, dynamic>>
-    final shipments =
-        List<Map<String, dynamic>>.from(jsonData);
-
-    return {
-      'success': true,
-      'data': shipments,
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Something went wrong',
-    };
   }
-}
-
-/// CHECK IF USER CAN SELL
-Future<Map<String, dynamic>> canUserSell({
-  required int userId,
-  required String slab,
-  required double qty,
-}) async {
-  final Uri url = Uri.parse('$_baseUrl/CanUserSell').replace(
-    queryParameters: {
-      'user_id': userId.toString(),
-      'slab': slab,
-      'qty': qty.toString(),
-    },
-  );
-
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode != 200) {
-      return {
-        'success': false,
-        'message': 'Server error: ${response.statusCode}',
-      };
-    }
-
-    final cleanJson =
-        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-
-    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-    final bool isSuccess =
-        jsonData['Status']?.toString().toLowerCase() == 'success';
-
-    return {
-      'success': isSuccess,
-      'message': jsonData['Message'] ??
-          (isSuccess
-              ? 'You can sell'
-              : 'Cannot sell'),
-      'data': jsonData,
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Something went wrong',
-    };
-  }
-}
-
 }

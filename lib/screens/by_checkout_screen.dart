@@ -180,7 +180,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
         title: const Text(
-          'Check Out',
+          'Buy Checkout',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
         ),
       ),
@@ -199,7 +199,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               SummaryRowCard(label: 'Order Type', value: 'BUY'),
               const SizedBox(height: 24),
               SummaryRowCard(
-                label: 'Price',
+                label: 'Price per (KG)',
                 value: subTotal.toStringAsFixed(2),
               ),
               const SizedBox(height: 24),

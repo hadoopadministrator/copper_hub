@@ -56,7 +56,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
 
   void _startAutoFetch() {
     _fetchTimer?.cancel();
-    _fetchTimer = Timer.periodic(const Duration(seconds: 300), (_) {
+    _fetchTimer = Timer.periodic(const Duration(minutes: 10), (_) {
       // debugPrint("Timer triggered at: ${DateTime.now()}");
       _fetchLiveRates();
     });
@@ -281,63 +281,66 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                                     horizontal: 14,
                                   ),
 
-                                  onPressed: () async {
-                                    final messenger = ScaffoldMessenger.of(
-                                      context,
-                                    );
+                                  onPressed: () {
+                                    final navigator = Navigator.of(context);
 
-                                    final int unitQty = _quantities[index] ?? 0;
+                                    navigator.pushNamed(AppRoutes.sellCheckOut);
+                                    // final messenger = ScaffoldMessenger.of(
+                                    //   context,
+                                    // );
 
-                                    if (unitQty <= 0) {
-                                      messenger.showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "Please select quantity",
-                                          ),
-                                        ),
-                                      );
-                                      return;
-                                    }
-                                    final slabName = slab['SlabName'];
-                                    final userId =
-                                        await AuthStorage.getUserId();
+                                    // final int unitQty = _quantities[index] ?? 0;
+                                    // // print('\nqty: $unitQty----------\n');
+                                    // if (unitQty <= 0) {
+                                    //   messenger.showSnackBar(
+                                    //     const SnackBar(
+                                    //       content: Text(
+                                    //         "Please select quantity",
+                                    //       ),
+                                    //     ),
+                                    //   );
+                                    //   return;
+                                    // }
+                                    // final slabId = slab['Id'];
+                                    // final userId =
+                                    //     await AuthStorage.getUserId();
 
-                                    if (userId == null) {
-                                      messenger.showSnackBar(
-                                        const SnackBar(
-                                          content: Text("Please login first"),
-                                        ),
-                                      );
-                                      return;
-                                    }
+                                    // if (userId == null) {
+                                    //   messenger.showSnackBar(
+                                    //     const SnackBar(
+                                    //       content: Text("Please login first"),
+                                    //     ),
+                                    //   );
+                                    //   return;
+                                    // }
 
-                                    /// CALL CAN USER SELL API
-                                    final result = await apiService.canUserSell(
-                                      userId: userId,
-                                      slab: slabName,
-                                      qty: unitQty.toDouble(),
-                                    );
+                                    // /// CALL CAN USER SELL API
+                                    // final result = await apiService.canUserSell(
+                                    //   userId: userId,
+                                    //   slabId: slabId,
+                                    //   qty: unitQty,
+                                    // );
 
-                                    if (!mounted) return;
+                                    // if (!mounted) return;
 
-                                    if (result['success'] == true) {
-                                      messenger.showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "You can sell this quantity",
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      messenger.showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            result['message'] ??
-                                                "No quantity available to sell",
-                                          ),
-                                        ),
-                                      );
-                                    }
+                                    // if (result['success'] == true) {
+                                    //   messenger.showSnackBar(
+                                    //     const SnackBar(
+                                    //       content: Text(
+                                    //         "You can sell this quantity",
+                                    //       ),
+                                    //     ),
+                                    //   );
+                                    // } else {
+                                    //   messenger.showSnackBar(
+                                    //     SnackBar(
+                                    //       content: Text(
+                                    //         result['message'] ??
+                                    //             "No quantity available to sell",
+                                    //       ),
+                                    //     ),
+                                    //   );
+                                    // }
                                   },
                                 ),
                               ),
