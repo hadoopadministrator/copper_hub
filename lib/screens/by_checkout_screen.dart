@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:copper_hub/models/cart_item_model.dart';
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/services/api_service.dart';
@@ -17,10 +19,9 @@ class ByCheckoutScreen extends StatefulWidget {
 }
 
 class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
-
   final PaymentService paymentService = PaymentService();
   final ApiService apiService = ApiService();
-  
+
   List<CartItemModel> cartItems = [];
   bool _loading = true;
 
@@ -35,11 +36,21 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     'Digital Wallet',
     'Self Pickup',
   ];
+
+  Timer? _priceTimer;
+
+  // ================= INIT =================
   @override
   void initState() {
     super.initState();
 
-   _initCheckout();
+    _initCheckout();
+
+    /// LIVE AUTO PRICE REFRESH EVERY 15 SEC
+    _priceTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (_) => _syncCartWithLiveRates(silent: true),
+    );
 
     paymentService.initPayment(
       onSuccess: (paymentId) {
@@ -48,7 +59,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       onError: (message) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(message)));
+        ).showSnackBar(SnackBar(content: Text(" payment not made $message")));
       },
     );
   }
@@ -58,80 +69,80 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     await _syncCartWithLiveRates();
   }
 
-
-
   Future<void> _loadUser() async {
-    final email = await AuthStorage.getEmail();
-    final mobile = await AuthStorage.getMobile();
-    final id = await AuthStorage.getUserId();
-
-    setState(() {
-      userEmail = email;
-      userMobile = mobile;
-      userId = id;
-    });
+    userEmail = await AuthStorage.getEmail();
+    userMobile = await AuthStorage.getMobile();
+    userId = await AuthStorage.getUserId();
   }
 
-    // ================= SYNC CART WITH LIVE RATES =================
+  // ================= SYNC CART WITH LIVE RATES =================
 
-  Future<void> _syncCartWithLiveRates() async {
+  Future<void> _syncCartWithLiveRates({bool silent = false}) async {
+    if (!mounted) return;
 
-    setState(() => _loading = true);
+    if (!silent) {
+      setState(() => _loading = true);
+    }
 
     final result = await apiService.getLiveCopperRate();
 
+    if (!mounted) return;
+
     if (result['success'] == true) {
-
-      final data = result['data'];
-
-      final slabs = data['Slabs'] as List;
+      final slabs = result['data']['Slabs'] as List;
 
       final db = CartDatabaseService.instance;
-
       final items = await db.getCartItems();
 
-      for (final item in items) {
+      bool priceChanged = false;
 
-        final liveSlab = slabs.firstWhere(
-              (s) => s['Id'] == item.slabId,
+      for (final item in items) {
+        final liveSlab = slabs.cast<Map<String, dynamic>?>().firstWhere(
+          (s) => s?['Id'] == item.slabId,
           orElse: () => null,
         );
 
         if (liveSlab != null) {
-
           final newBuyPrice =
-          double.parse(liveSlab['BuyPrice']);
+              double.tryParse(liveSlab['BuyPrice'].toString()) ?? item.buyPrice;
 
-          await db.updatePrice(
-            item.id!,
-            newBuyPrice,
-          );
+          if ((newBuyPrice - item.buyPrice).abs() >= 0.01) {
+            await db.updatePrice(item.id!, newBuyPrice);
+            priceChanged = true;
+          }
         }
       }
 
-      await _loadCart();
-    }
-    else {
+      final updatedItems = await db.getCartItems();
 
-      setState(() => _loading = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result['message'] ?? "Failed to sync prices",
-          ),
-        ),
-      );
+
+      setState(() {
+        cartItems = updatedItems;
+        _loading = false;
+      });
+
+      /// show only when price changed and silent sync
+      if (silent && priceChanged) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text("Price updated based on live market"),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+      }
+    } else {
+      if (!silent && mounted) {
+        setState(() => _loading = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? "Failed to sync prices")),
+        );
+      }
     }
-  }
-
-
-  Future<void> _loadCart() async {
-    final items = await CartDatabaseService.instance.getCartItems();
-    setState(() {
-      cartItems = items;
-      _loading = false;
-    });
   }
 
   // ---------------- calculations ----------------
@@ -139,9 +150,19 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   double get totalQty => cartItems.fold(0, (sum, e) => sum + e.qty);
 
   /// combined price of all slabs
-  double get totalPrice => cartItems.fold(0, (sum, e) => sum + e.buyPrice);
+  // double get totalPrice => cartItems.fold(0, (sum, e) => sum + e.buyPrice);
 
   double get subTotal => cartItems.fold(0, (sum, e) => sum + e.amount);
+
+  double get effectivePricePerKg => totalQty == 0 ? 0 : subTotal / totalQty;
+
+  // bool get isSingleItem => cartItems.length == 1;
+
+  // String get pricePerKgLabel =>
+  //     isSingleItem ? 'Price per (KG)' : 'Effective Price per KG';
+
+  // double get pricePerKgValue =>
+  //     isSingleItem ? cartItems.first.buyPrice : effectivePricePerKg;
 
   double get gst => _selectedOption == 'Digital Wallet' ? 0 : subTotal * 0.18;
 
@@ -161,9 +182,26 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
         return Icons.local_shipping;
     }
   }
+  //  Widget buildSlabPrices() {
+  //   return Column(
+  //     children: cartItems.map((item) {
+  //       return Padding(
+  //         padding:
+  //             const EdgeInsets.only(bottom: 16),
+  //         child: SummaryRowCard(
+  //           label:
+  //               "Slab ${item.slab} /Quantity (${item.qty.toStringAsFixed(2)} KG)",
+  //           value:
+  //               "Price per (KG): ₹${item.buyPrice.toStringAsFixed(2)} / KG",
+  //         ),
+  //       );
+  //     }).toList(),
+  //   );
+  // }
 
   @override
   void dispose() {
+    _priceTimer?.cancel();
     paymentService.dispose();
     super.dispose();
   }
@@ -190,17 +228,20 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // buildSlabPrices(),
               SummaryRowCard(
                 label: 'Slab',
-                // value: cartItems.map((e) => e.slab).join(', '),
-                value: 'CART ITEMS',
+                value: cartItems.map((e) => e.slab).join(', '),
+                // value: 'CART ITEMS',
               ),
               const SizedBox(height: 24),
               SummaryRowCard(label: 'Order Type', value: 'BUY'),
               const SizedBox(height: 24),
               SummaryRowCard(
                 label: 'Price per (KG)',
-                value: subTotal.toStringAsFixed(2),
+                value: cartItems
+                    .map((e) => "₹${e.buyPrice.toStringAsFixed(2)}")
+                    .join(', '),
               ),
               const SizedBox(height: 24),
               SummaryRowCard(
@@ -220,21 +261,27 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               ),
 
               const SizedBox(height: 24),
-              SummaryRowCard(label: 'GST (18%)', value: gst.toStringAsFixed(2)),
+              if (_selectedOption == 'Physical Delivery' ||
+                  _selectedOption == 'Self Pickup')
+                SummaryRowCard(
+                  label: 'GST (18%)',
+                  value: "₹${gst.toStringAsFixed(2)}",
+                ),
               const SizedBox(height: 24),
-              SummaryRowCard(
-                label: 'Courier Charges',
-                value: courierCharges.toStringAsFixed(2),
-              ),
+              if (_selectedOption == 'Physical Delivery')
+                SummaryRowCard(
+                  label: 'Courier Charges',
+                  value: "₹${courierCharges.toStringAsFixed(2)}",
+                ),
               const SizedBox(height: 24),
               SummaryRowCard(
                 label: 'Sub Total',
-                value: subTotal.toStringAsFixed(2),
+                value: "₹${subTotal.toStringAsFixed(2)}",
               ),
               const SizedBox(height: 24),
               SummaryRowCard(
                 label: 'Final Total ₹',
-                value: finalTotal.toStringAsFixed(2),
+                value: "₹${finalTotal.toStringAsFixed(2)}",
               ),
               const SizedBox(height: 30),
               CustomButton(
@@ -252,8 +299,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
                     email: userEmail!,
                     contact: userMobile!,
                   );
-                  // debugPrint("RazorPayEnd----------");
-                  // Navigator.pushNamed(context, AppRoutes.orderSuccess);
                 },
               ),
             ],
@@ -295,7 +340,17 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
 
       // navigate success
       if (!mounted) return;
-      Navigator.pushNamed(context, AppRoutes.orderSuccess);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.orderSuccess,
+        (route) => false,
+        arguments: {
+          "type": "BUY",
+          "qty": totalQty,
+          "price": finalTotal,
+          "orderId": "ORD123456",
+        },
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message'] ?? "Order failed")),

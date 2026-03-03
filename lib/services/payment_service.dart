@@ -70,20 +70,4 @@ class PaymentService {
       _razorpay.clear();
     } catch (_) {}
   }
-
-  // void verifyPaymentFromServer({
-  //   String? paymentId,
-  //   String? orderId,
-  //   String? signature,
-  //   // String? paymentId,
-  // }) {
-  //   if (paymentId == null || orderId == null || signature == null) {
-  //     onPaymentErrorCallback?.call("Invalid payment response");
-  //     return;
-  //   }
-  //   // Send paymentId, orderId, signature
-  //   // Backend must verify using Razorpay secret
-
-  //   // onPaymentSuccessCallback?.call();
-  // }
 }

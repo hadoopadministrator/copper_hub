@@ -450,45 +450,178 @@ class ApiService {
 
   /// CHECK IF USER CAN SELL
   Future<Map<String, dynamic>> canUserSell({
-    required int userId,
-    required int slabId,
-    required int qty,
-  }) async {
-    final Uri url = Uri.parse('$_baseUrl/CanUserSell');
+  required int userId,
+  required int slabId,
+}) async {
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'user_id': userId.toString(),
-          'slab_id': slabId.toString(),
-          'qty': qty.toString(),
-        },
-      );
+  final Uri url = Uri.parse('$_baseUrl/CanUserSell').replace(
+    queryParameters: {
+      'user_id': userId.toString(),
+      'slab_id': slabId.toString(),
+    },
+  );
 
-      if (response.statusCode != 200) {
-        return {'success': false, 'message': 'Server error'};
-      }
+  try {
 
-      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    final response = await http.get(url);
 
-      final jsonData = jsonDecode(cleanJson);
-
-      // print('\canUserSell:$jsonData\n');
-
-
-      final bool isSuccess = jsonData['Status'] == 'Success';
-
+    if (response.statusCode != 200) {
       return {
-        'success': isSuccess,
-        'message': jsonData['Message'],
-        'remainingQty': jsonData['RemainingQty'],
-        'slabId': jsonData['SlabId'],
-        'requestedQty': jsonData['RequestedQty'],
+        'success': false,
+        'message': 'Server error',
       };
-    } catch (e) {
-      return {'success': false, 'message': 'Network error'};
     }
+
+    final cleanJson =
+        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+    final jsonData = jsonDecode(cleanJson);
+
+    final bool isSuccess = jsonData['Status'] == 'Success';
+
+    return {
+      'success': isSuccess,
+      'message': jsonData['Message'],
+      'remainingQty': jsonData['RemainingQty'],
+      'slabId': jsonData['SlabId'],
+      'slabName': jsonData['SlabName'],
+    };
+
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Network error',
+    };
   }
 }
+
+/// GET SELL DETAILS
+Future<Map<String, dynamic>> getSellDetails({
+  required int userId,
+  required int slabId,
+}) async {
+  final Uri url = Uri.parse('$_baseUrl/GetSellDetails').replace(
+    queryParameters: {
+      'user_id': userId.toString(),
+      'slab_id': slabId.toString(),
+    },
+  );
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      return {
+        'success': false,
+        'message': 'Server error',
+      };
+    }
+
+    final cleanJson =
+        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+    //  print("\nsell details $jsonData--\n");
+    final bool isSuccess = jsonData['Status'] == 'Success';
+
+    return {
+      'success': isSuccess,
+      'message': jsonData['Message'],
+      'slabName': jsonData['SlabName'],
+      'pricePerKg': jsonData['CurrentSellPrice'],
+      'remainingQty': jsonData['RemainingQty'],
+      'deliveryOption': jsonData['DeliveryOption'], // physical / pickup / digital
+      'data': jsonData,
+    };
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Network error',
+    };
+  }
+}
+
+/// PLACE SELL ORDER
+Future<Map<String, dynamic>> placeSellOrder({
+  required int userId,
+  required int slabId,
+  required int qty,
+}) async {
+
+  final Uri url = Uri.parse('$_baseUrl/PlaceSellOrder');
+
+  try {
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'user_id': userId.toString(),
+        'slab_id': slabId.toString(),
+        'qty': qty.toString(),
+
+        /// Backend still requires this field, so sending dummy value
+        'razorpay_payment_id': 'SELL_ORDER',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      return {
+        'success': false,
+        'message': 'Server error: ${response.statusCode}',
+      };
+    }
+
+    // Remove XML wrapper
+    final cleanJson =
+        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+    //  print("\nsell --- $jsonData--\n");
+    
+    final bool isSuccess =
+        jsonData['Status']?.toString().toLowerCase() == 'success';
+
+    return {
+      'success': isSuccess,
+      'message': jsonData['Message'] ??
+          (isSuccess ? 'Sell order placed' : 'Failed'),
+      'data': jsonData,
+    };
+
+  } catch (e) {
+
+    return {
+      'success': false,
+      'message': 'Network error',
+    };
+
+  }
+
+}
+
+}
+// https://wealthbridgeimpex.com/WebService2.asmx?op=PlaceSellOrder
+/*
+Parameter	Value
+user_id:	
+4
+slab:	
+100 KG +
+qty:	
+10
+price_perkg:	
+1801.50
+<string xmlns="http://tempuri.org/">{"Status":"Success","Message":"Sell Order Placed"}</string>
+
+https://wealthbridgeimpex.com/WebService2.asmx?op=GetSellDetails
+Parameter	Value
+user_id:	
+4
+slab_id:	
+5
+
+<string xmlns="http://tempuri.org/">{"Status":"Success","SlabName":"100 KG +","CurrentSellPrice":1256.25,"RemainingQty":40,"DeliveryOption":"physical"}</string>
+ */

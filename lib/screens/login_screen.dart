@@ -194,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Spacer(),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, AppRoutes.forgot);
+                            Navigator.pushNamed(context, AppRoutes.forgotPassword);
                           },
                           child: Text(
                             'Forgot passsword?',

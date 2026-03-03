@@ -23,6 +23,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _landmarkController = TextEditingController();
   final TextEditingController _pincodeController = TextEditingController();
   final TextEditingController _gstController = TextEditingController();
+  final TextEditingController _accountHolderController =
+      TextEditingController();
+  final TextEditingController _accountNumberController =
+      TextEditingController();
+  final TextEditingController _confirmAccountNumberController =
+      TextEditingController();
+  final TextEditingController _ifscController = TextEditingController();
+  final TextEditingController _bankNameController = TextEditingController();
+  final TextEditingController _upiController = TextEditingController();
 
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
@@ -38,6 +47,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _landmarkController.dispose();
     _pincodeController.dispose();
     _gstController.dispose();
+    _accountHolderController.dispose();
+    _accountNumberController.dispose();
+    _confirmAccountNumberController.dispose();
+    _ifscController.dispose();
+    _bankNameController.dispose();
+    _upiController.dispose();
+
     super.dispose();
   }
 
@@ -254,6 +270,139 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       const SizedBox(height: 30),
+
+                      const Text(
+                        "Bank Details (Optional)",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _accountHolderController,
+                        decoration: AppDecorations.textField(
+                          label: 'Account Holder Name (optional)',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return null;
+                          }
+                          final name = value.trim();
+                          if (name.length < 3) {
+                            return "Minimum 3 characters required";
+                          }
+                          final nameRegex = RegExp(r'^[a-zA-Z ]+$');
+                          if (!nameRegex.hasMatch(name)) {
+                            return "Only letters allowed";
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _accountNumberController,
+                        keyboardType: TextInputType.number,
+                        decoration: AppDecorations.textField(
+                          label: 'Account Number (optional)',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return null;
+                          if (!RegExp(r'^[0-9]{8,18}$').hasMatch(value)) {
+                            return "Enter valid account number";
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _confirmAccountNumberController,
+                        keyboardType: TextInputType.number,
+                        decoration: AppDecorations.textField(
+                          label: 'Confirm Account Number',
+                        ),
+                        validator: (value) {
+                          if (_accountNumberController.text.isEmpty &&
+                              (value == null || value.isEmpty)) {
+                            return null;
+                          }
+                          if (value != _accountNumberController.text) {
+                            return "Account numbers do not match";
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _ifscController,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: AppDecorations.textField(
+                          label: 'IFSC Code (optional)',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return null;
+                          if (!RegExp(
+                            r'^[A-Z]{4}0[A-Z0-9]{6}$',
+                          ).hasMatch(value)) {
+                            return "Enter valid IFSC code";
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _bankNameController,
+                        decoration: AppDecorations.textField(
+                          label: 'Bank Name (optional)',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return null;
+                          }
+                          final bank = value.trim();
+                          if (bank.length < 3) {
+                            return "Minimum 3 characters required";
+                          }
+                          final bankRegex = RegExp(r'^[a-zA-Z ]+$');
+                          if (!bankRegex.hasMatch(bank)) {
+                            return "Enter valid bank name";
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _upiController,
+                        decoration: AppDecorations.textField(
+                          label: 'UPI ID (optional)',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return null;
+                          }
+                          final upi = value.trim();
+                          final upiRegex = RegExp(
+                            r'^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$',
+                          );
+                          if (!upiRegex.hasMatch(upi)) {
+                            return "Enter valid UPI ID";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 30),
                       CustomButton(
                         text: 'Register',
                         onPressed: _isFormValid ? _onRegisterPressed : null,
@@ -310,6 +459,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         landmark: _landmarkController.text.trim(),
         pincode: _pincodeController.text.trim(),
         gst: _gstController.text.trim(),
+        // accountHolderName: _accountHolderController.text.trim(),
+        // accountNumber: _accountNumberController.text.trim(),
+        // ifscCode: _ifscController.text.trim(),
+        // bankName: _bankNameController.text.trim(),
+        // upiId: _upiController.text.trim(),
       );
 
       if (!mounted) return;

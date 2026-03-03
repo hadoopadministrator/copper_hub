@@ -13,16 +13,19 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
+final TextEditingController _emailOrMobileController = TextEditingController();
 
-  // Email validator helper
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  bool _isValidEmailOrMobile(String input) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+    final mobileRegex = RegExp(r'^[0-9]{10}$');
+
+    return emailRegex.hasMatch(input) || mobileRegex.hasMatch(input);
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _emailOrMobileController.dispose();
     super.dispose();
   }
 
@@ -64,24 +67,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       Align(
                         alignment: Alignment.center,
                         child: Text(
-                          'Enter your registered email to receive reset instructions',
+                          'Enter your registered email or mobile number to receive OTP',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 14, color: Colors.black54),
                         ),
                       ),
                       SizedBox(height: 24),
                       TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
+                        controller: _emailOrMobileController,
+                        keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.done,
-                        cursorColor: Color(0xFF555555),
+                        cursorColor: const Color(0xFF555555),
                         decoration: AppDecorations.textField(
-                          label: 'Email Address',
+                          label: 'Email or Mobile Number',
                         ),
-                        // onChanged: (_) => setState(() {}),
                         validator: (value) {
-                          if (value == null || !_isValidEmail(value.trim())) {
-                            return 'Please enter a valid email';
+                          if (value == null ||
+                              !_isValidEmailOrMobile(value.trim())) {
+                            return 'Enter valid email or mobile number';
                           }
                           return null;
                         },
@@ -89,22 +92,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       const SizedBox(height: 24),
                       CustomButton(
                         width: double.infinity,
-                        text: 'Send Reset Link',
+                        text: 'Send OTP',
                         onPressed: () {
                           if (!_formKey.currentState!.validate()) return;
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text(
-                                'Password reset link sent to your email',
-                              ),
+                              content: Text('OTP sent successfully'),
                             ),
                           );
 
-                          Navigator.pushReplacementNamed(
-                            context,
-                            AppRoutes.login,
-                          );
+                          Navigator.pushNamed(context, AppRoutes.verifyOTP);
                         },
                       ),
                       const SizedBox(height: 16),

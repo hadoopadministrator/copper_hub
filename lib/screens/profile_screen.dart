@@ -31,6 +31,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController landmarkController = TextEditingController();
   final TextEditingController pincodeController = TextEditingController();
   final TextEditingController gstController = TextEditingController();
+  final TextEditingController accountHolderController = TextEditingController();
+  final TextEditingController accountNumberController = TextEditingController();
+  final TextEditingController confirmAccountNumberController =
+      TextEditingController();
+  final TextEditingController ifscController = TextEditingController();
+  final TextEditingController bankNameController = TextEditingController();
+  final TextEditingController upiController = TextEditingController();
 
   @override
   void initState() {
@@ -311,6 +318,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       value: gstController.text,
                       controller: gstController,
                     ),
+                    const SizedBox(height: 16),
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Bank Details",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    _buildField(
+                      icon: Icons.account_circle,
+                      label: 'Account Holder Name',
+                      value: accountHolderController.text,
+                      controller: accountHolderController,
+                    ),
+
+                    _buildField(
+                      icon: Icons.credit_card,
+                      label: 'Account Number',
+                      value: accountNumberController.text,
+                      controller: accountNumberController,
+                      keyboardType: TextInputType.number,
+                    ),
+
+                    _buildField(
+                      icon: Icons.account_balance,
+                      label: 'IFSC Code',
+                      value: ifscController.text,
+                      controller: ifscController,
+                    ),
+
+                    _buildField(
+                      icon: Icons.account_balance_wallet,
+                      label: 'Bank Name',
+                      value: bankNameController.text,
+                      controller: bankNameController,
+                    ),
+
+                    _buildField(
+                      icon: Icons.qr_code,
+                      label: 'UPI ID',
+                      value: upiController.text,
+                      controller: upiController,
+                    ),
+
                     if (isEditing) ...[
                       const SizedBox(height: 8),
                       // AppColors.greenDark,

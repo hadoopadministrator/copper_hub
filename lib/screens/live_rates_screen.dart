@@ -280,67 +280,59 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                                     vertical: 12,
                                     horizontal: 14,
                                   ),
-
-                                  onPressed: () {
+                                  onPressed: () async {
                                     final navigator = Navigator.of(context);
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
 
-                                    navigator.pushNamed(AppRoutes.sellCheckOut);
-                                    // final messenger = ScaffoldMessenger.of(
-                                    //   context,
-                                    // );
+                                    final slabId = slab['Id'];
+                                    final userId =
+                                        await AuthStorage.getUserId();
 
-                                    // final int unitQty = _quantities[index] ?? 0;
-                                    // // print('\nqty: $unitQty----------\n');
-                                    // if (unitQty <= 0) {
-                                    //   messenger.showSnackBar(
-                                    //     const SnackBar(
-                                    //       content: Text(
-                                    //         "Please select quantity",
-                                    //       ),
-                                    //     ),
-                                    //   );
-                                    //   return;
-                                    // }
-                                    // final slabId = slab['Id'];
-                                    // final userId =
-                                    //     await AuthStorage.getUserId();
+                                    if (userId == null || slabId == null) {
+                                      messenger.showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Please login first"),
+                                        ),
+                                      );
+                                      return;
+                                    }
 
-                                    // if (userId == null) {
-                                    //   messenger.showSnackBar(
-                                    //     const SnackBar(
-                                    //       content: Text("Please login first"),
-                                    //     ),
-                                    //   );
-                                    //   return;
-                                    // }
+                                    final result = await apiService.canUserSell(
+                                      userId: userId,
+                                      slabId: slabId,
+                                    );
 
-                                    // /// CALL CAN USER SELL API
-                                    // final result = await apiService.canUserSell(
-                                    //   userId: userId,
-                                    //   slabId: slabId,
-                                    //   qty: unitQty,
-                                    // );
+                                    if (!mounted) return;
 
-                                    // if (!mounted) return;
-
-                                    // if (result['success'] == true) {
-                                    //   messenger.showSnackBar(
-                                    //     const SnackBar(
-                                    //       content: Text(
-                                    //         "You can sell this quantity",
-                                    //       ),
-                                    //     ),
-                                    //   );
-                                    // } else {
-                                    //   messenger.showSnackBar(
-                                    //     SnackBar(
-                                    //       content: Text(
-                                    //         result['message'] ??
-                                    //             "No quantity available to sell",
-                                    //       ),
-                                    //     ),
-                                    //   );
-                                    // }
+                                    if (result['success'] == true) {
+                                      final remainingQty =
+                                          (result['remainingQty'] ?? 0);
+                                      if (remainingQty <= 0) {
+                                        messenger.showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              "You don't have any quantity to sell in this slab",
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      navigator.pushNamed(
+                                        AppRoutes.sellCheckOut,
+                                        arguments: {
+                                          'userId': userId,
+                                          'slabId': slabId,
+                                        },
+                                      );
+                                    } else {
+                                      messenger.showSnackBar(
+                                        SnackBar(
+                                          content: Text(result['message']),
+                                        ),
+                                      );
+                                    }
                                   },
                                 ),
                               ),
