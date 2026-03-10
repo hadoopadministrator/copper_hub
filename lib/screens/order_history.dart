@@ -59,16 +59,7 @@ class _OrderHistoryState extends State<OrderHistory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.white,
-        iconTheme: const IconThemeData(color: AppColors.black),
-        title: const Text(
-          "Order History",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
-      ),
+      appBar: AppBar(title: const Text("Order History")),
       body: SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())

@@ -40,7 +40,7 @@ class DrawerWidget extends StatelessWidget {
             },
           ),
 
-          /// MY HOLDINGS (NEW)
+          /// MY HOLDINGS
           ListTile(
             leading: const Icon(
               Icons.account_balance_wallet_rounded,
@@ -49,10 +49,7 @@ class DrawerWidget extends StatelessWidget {
             title: const Text('My Holdings', style: TextStyle(fontSize: 18)),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(
-                context,
-                AppRoutes.myHoldings,
-              );
+              Navigator.pushNamed(context, AppRoutes.myHoldings);
             },
           ),
 
@@ -208,17 +205,34 @@ class DrawerWidget extends StatelessWidget {
   static Future<void> _logout(BuildContext context) async {
     final navigator = Navigator.of(context);
     final confirm = await showDialog<bool>(
+      barrierDismissible: false,
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: AppColors.background,
         title: const Text("Logout"),
         content: const Text("Are you sure you want to logout?"),
         actions: [
           TextButton(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: AppColors.orangeLight),
+            ),
           ),
 
           TextButton(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text("Logout", style: TextStyle(color: Colors.red)),
           ),

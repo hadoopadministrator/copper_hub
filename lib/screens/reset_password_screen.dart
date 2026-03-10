@@ -1,6 +1,9 @@
 import 'package:copper_hub/routes/app_routes.dart';
+import 'package:copper_hub/services/api_service.dart';
+import 'package:copper_hub/services/auth_storage.dart';
 import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
+import 'package:copper_hub/utils/validators.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +16,7 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-
+  final ApiService api = ApiService();
   final TextEditingController _passwordController = TextEditingController();
 
   final TextEditingController _confirmPasswordController =
@@ -22,6 +25,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
+  String mobileNo = "";
+
+  bool _isLoading = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (mobileNo.isEmpty) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+      if (args != null) {
+        mobileNo = args['mobile'] ?? "";
+      }
+    }
+  }
+
   @override
   void dispose() {
     _passwordController.dispose();
@@ -29,40 +50,64 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
-  bool _isValidPassword(String password) {
-    return password.trim().length >= 6;
+  Future<void> resetPassword() async {
+    if (_isLoading) return;
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await api.resetPassword(
+      newPassword: _passwordController.text.trim(),
+      mobileNo: mobileNo,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result["message"])));
+    if (result["success"]) {
+      final navigator = Navigator.of(context);
+      await AuthStorage.saveRememberMe(
+        remember: false,
+        emailOrMobile: '',
+        password: '',
+      );
+      navigator.pushNamedAndRemoveUntil(
+        AppRoutes.login,
+        (route) => false,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
-
           child: Center(
             child: Card(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               color: AppColors.white,
               elevation: 8,
-
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-
                 child: Form(
                   key: _formKey,
-
                   autovalidateMode: AutovalidateMode.onUserInteraction,
-
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-
                     children: [
                       const Text(
                         'Reset Password',
@@ -71,24 +116,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-
                       const SizedBox(height: 8),
-
                       const Text(
                         'Enter your new password below',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 14, color: Colors.black54),
                       ),
-
                       const SizedBox(height: 24),
-
                       TextFormField(
                         controller: _passwordController,
-
                         obscureText: _obscurePassword,
-
+                        keyboardType: TextInputType.visiblePassword,
                         cursorColor: const Color(0xFF555555),
-
                         decoration:
                             AppDecorations.textField(
                               label: 'New Password',
@@ -106,24 +145,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 },
                               ),
                             ),
-
-                        validator: (value) {
-                          if (value == null || !_isValidPassword(value)) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
+                        validator: Validators.password,
                       ),
-
                       const SizedBox(height: 16),
-
                       TextFormField(
                         controller: _confirmPasswordController,
-
                         obscureText: _obscureConfirmPassword,
-
+                        keyboardType: TextInputType.visiblePassword,
                         cursorColor: const Color(0xFF555555),
-
                         decoration:
                             AppDecorations.textField(
                               label: 'Confirm Password',
@@ -142,45 +171,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 },
                               ),
                             ),
-
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please confirm password';
-                          }
-
-                          if (value != _passwordController.text) {
-                            return 'Passwords do not match';
-                          }
-
-                          return null;
-                        },
+                        validator: (value) => Validators.confirmPassword(
+                          value,
+                          _passwordController.text,
+                        ),
                       ),
-
                       const SizedBox(height: 24),
-
                       CustomButton(
                         width: double.infinity,
                         text: 'Reset Password',
-
-                        onPressed: () {
-                          if (!_formKey.currentState!.validate()) {
-                            return;
-                          }
-                          FocusScope.of(context).unfocus();
-                          // TODO: Call Reset Password API
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Password reset successfully'),
-                            ),
-                          );
-
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            AppRoutes.login,
-                            (route) => false,
-                          );
-                        },
+                        isLoading: _isLoading,
+                        onPressed: _isLoading ? null : resetPassword,
                       ),
                     ],
                   ),

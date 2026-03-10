@@ -33,8 +33,8 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
     if (args == null) return;
 
     type = args['type']?.toString() ?? "BUY";
-    qty = (args['qty'] as num?)?.toDouble()?? 0;
-    price = (args['price'] as num?)?.toDouble()?? 0;
+    qty = (args['qty'] as num?)?.toDouble() ?? 0;
+    price = (args['price'] as num?)?.toDouble() ?? 0;
     orderId = args['orderId'] as String?;
   }
 
@@ -55,7 +55,6 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
     final bool isSell = type == "SELL";
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),

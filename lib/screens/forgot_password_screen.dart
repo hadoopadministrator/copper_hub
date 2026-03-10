@@ -1,8 +1,11 @@
+import 'package:copper_hub/services/api_service.dart';
+import 'package:copper_hub/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
+import 'package:flutter/services.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -13,26 +16,62 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-final TextEditingController _emailOrMobileController = TextEditingController();
-
-  bool _isValidEmailOrMobile(String input) {
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-
-    final mobileRegex = RegExp(r'^[0-9]{10}$');
-
-    return emailRegex.hasMatch(input) || mobileRegex.hasMatch(input);
-  }
-
+  final TextEditingController _mobileController = TextEditingController();
+  final apiService = ApiService();
+  bool _isLoading = false;
   @override
   void dispose() {
-    _emailOrMobileController.dispose();
+    _mobileController.dispose();
     super.dispose();
+  }
+
+  void _sendOtp() async {
+    if (_isLoading) return;
+    if (!_formKey.currentState!.validate()) return;
+
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await apiService.forgotPassword(
+      mobileNo: _mobileController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "OTP sent successfully to ${result['mobile'] ?? _mobileController.text}",
+          ),
+        ),
+      );
+
+      Navigator.pushNamed(
+        context,
+        AppRoutes.verifyOTP,
+        arguments: {
+          "mobile": result['mobile'] ?? _mobileController.text.trim(),
+          "otp": result['otp'],
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'])));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: GestureDetector(
           // dismiss keyboard on outside tap
@@ -67,43 +106,34 @@ final TextEditingController _emailOrMobileController = TextEditingController();
                       Align(
                         alignment: Alignment.center,
                         child: Text(
-                          'Enter your registered email or mobile number to receive OTP',
+                          'Enter your registered mobile number to receive OTP',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 14, color: Colors.black54),
                         ),
                       ),
                       SizedBox(height: 24),
                       TextFormField(
-                        controller: _emailOrMobileController,
-                        keyboardType: TextInputType.text,
+                        controller: _mobileController,
+                        keyboardType: TextInputType.number,
                         textInputAction: TextInputAction.done,
+                        maxLength: 10,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10),
+                        ],
                         cursorColor: const Color(0xFF555555),
                         decoration: AppDecorations.textField(
-                          label: 'Email or Mobile Number',
+                          label: 'Mobile Number',
+                           counterText: '',
                         ),
-                        validator: (value) {
-                          if (value == null ||
-                              !_isValidEmailOrMobile(value.trim())) {
-                            return 'Enter valid email or mobile number';
-                          }
-                          return null;
-                        },
+                        validator: Validators.mobile,
                       ),
                       const SizedBox(height: 24),
                       CustomButton(
                         width: double.infinity,
-                        text: 'Send OTP',
-                        onPressed: () {
-                          if (!_formKey.currentState!.validate()) return;
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('OTP sent successfully'),
-                            ),
-                          );
-
-                          Navigator.pushNamed(context, AppRoutes.verifyOTP);
-                        },
+                        text: "Send OTP",
+                        isLoading: _isLoading,
+                        onPressed: _isLoading ? null : _sendOtp,
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -115,7 +145,7 @@ final TextEditingController _emailOrMobileController = TextEditingController();
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.pushNamed(context, AppRoutes.login);
+                              Navigator.pop(context);
                             },
                             child: Text(
                               'Login',

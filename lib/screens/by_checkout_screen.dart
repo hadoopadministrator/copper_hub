@@ -212,16 +212,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text(
-          'Buy Checkout',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
-      ),
+      appBar: AppBar(title: const Text('Buy Checkout')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),

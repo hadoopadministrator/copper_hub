@@ -1,3 +1,4 @@
+import 'package:copper_hub/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:copper_hub/routes/app_routes.dart';
@@ -15,7 +16,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>(); // Form key for validation
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailOrMobileController =
       TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -24,9 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool remember = false;
-  bool _isValidEmail(String value) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value);
-  }
 
   @override
   void initState() {
@@ -39,27 +37,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!isRemember) return;
 
-    final email = await AuthStorage.getEmail();
+     final user = await AuthStorage.getRememberUser();
     final password = await AuthStorage.getRememberPassword();
 
     setState(() {
       remember = true;
-      _emailOrMobileController.text = email ?? '';
+      _emailOrMobileController.text = user ?? '';
       _passwordController.text = password ?? '';
     });
   }
 
-  // Computed property for enabling/disabling button
   bool get _isFormValid {
-    final input = _emailOrMobileController.text.trim();
-    final isNumeric = RegExp(r'^[0-9]+$').hasMatch(input);
-
-    if (isNumeric) {
-      return input.length == 10 && _passwordController.text.trim().length >= 4;
-    } else {
-      return _isValidEmail(input) &&
-          _passwordController.text.trim().length >= 4;
-    }
+    return Validators.emailOrMobile(_emailOrMobileController.text.trim()) ==
+            null &&
+        Validators.password(_passwordController.text) == null;
   }
 
   @override
@@ -72,7 +63,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: Card(
@@ -118,28 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         LengthLimitingTextInputFormatter(50),
                       ],
                       onChanged: (_) => setState(() {}),
-                      validator: (value) {
-                        final input = value?.trim() ?? '';
-
-                        if (input.isEmpty) {
-                          return 'Email or mobile is required';
-                        }
-
-                        final isNumeric = RegExp(r'^[0-9]+$').hasMatch(input);
-
-                        // UPDATED: numeric input = mobile
-                        if (isNumeric) {
-                          if (input.length != 10) {
-                            return 'Mobile number must be 10 digits';
-                          }
-                        }
-                        // else treat as email
-                        else if (!_isValidEmail(input)) {
-                          return 'Enter valid email address';
-                        }
-
-                        return null;
-                      },
+                      validator: Validators.emailOrMobile,
                       cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Email / Mobile',
@@ -151,12 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
                       onChanged: (_) => setState(() {}),
-                      validator: (value) {
-                        if (value == null || value.trim().length < 4) {
-                          return 'Password must be at least 4 characters';
-                        }
-                        return null;
-                      },
+                      validator: Validators.password,
                       cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Password',
@@ -194,10 +158,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Spacer(),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, AppRoutes.forgotPassword);
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.forgotPassword,
+                            );
                           },
                           child: Text(
-                            'Forgot passsword?',
+                            'Forgot password?',
                             style: TextStyle(color: Colors.blue),
                           ),
                         ),

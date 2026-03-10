@@ -30,17 +30,16 @@ class RateAppDialog {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
-                backgroundColor: AppColors.white,
-                foregroundColor: AppColors.orangeDark,
+                foregroundColor: AppColors.orangeLight,
               ),
               onPressed: () {
                 Navigator.pop(dialogContext);
               },
-              child: const Text("Later"),
+              child: const Text("Later", style: TextStyle(fontSize: 18)),
             ),
             CustomButton(
-              width: double.infinity,
               text: "Rate Now",
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               onPressed: () async {
                 Navigator.pop(dialogContext);
                 final Uri url = Uri.parse(_playStoreUrl);

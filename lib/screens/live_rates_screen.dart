@@ -130,15 +130,8 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.white,
-        iconTheme: const IconThemeData(color: AppColors.black),
-        title: const Text(
-          'Live Prices',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Live Prices'),
         actions: [
           IconButton(
             onPressed: () => Navigator.pushNamed(context, AppRoutes.cart),

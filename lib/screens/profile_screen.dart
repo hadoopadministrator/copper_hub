@@ -37,7 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       TextEditingController();
   final TextEditingController ifscController = TextEditingController();
   final TextEditingController bankNameController = TextEditingController();
-  final TextEditingController upiController = TextEditingController();
 
   @override
   void initState() {
@@ -54,6 +53,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     landmarkController.dispose();
     pincodeController.dispose();
     gstController.dispose();
+    bankNameController.dispose();
+    accountHolderController.dispose();
+    accountNumberController.dispose();
+    confirmAccountNumberController.dispose();
+    ifscController.dispose();
+
     super.dispose();
   }
 
@@ -81,6 +86,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         landmarkController.text = data['Landmark'] ?? '';
         pincodeController.text = data['Pincode'] ?? '';
         gstController.text = data['Gst'] ?? '';
+        bankNameController.text = data['BankName'] ?? '';
+        accountHolderController.text = data['AccountHolderName'] ?? '';
+        accountNumberController.text = data['AccountNumber'] ?? '';
+        confirmAccountNumberController.text = data['AccountNumber'] ?? '';
+        ifscController.text = data['IfscCode'] ?? '';
       }
     } catch (e) {
       // debugPrint('Profile load error: $e');
@@ -99,6 +109,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final pincode = pincodeController.text.trim();
     final gst = gstController.text.trim();
     final landmark = landmarkController.text.trim();
+    final bankName = bankNameController.text.trim();
+    final accountHolder = accountHolderController.text.trim();
+    final accountNumber = accountNumberController.text.trim();
+    final confirmAccountNumber = confirmAccountNumberController.text.trim();
+    final ifsc = ifscController.text.trim();
 
     // ---- validations (NO API CALL if any fails) ----
     if (fullName.isEmpty) {
@@ -126,10 +141,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
-    // if (gst.isEmpty) {
-    //   _showMessage('GST number is required');
-    //   return;
-    // }
+    if (accountNumber.isNotEmpty || confirmAccountNumber.isNotEmpty) {
+      if (accountNumber != confirmAccountNumber) {
+        _showMessage("Account numbers do not match");
+        return;
+      }
+    }
 
     setState(() => _isLoading = true);
 
@@ -143,6 +160,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         landmark: landmark, // can be empty
         pincode: pincode,
         gst: gst,
+        bankName: bankName,
+        accountHolder: accountHolder,
+        accountNumber: accountNumber,
+        ifscCode: ifsc,
       );
 
       // UPDATE LOCAL STORAGE HERE
@@ -204,15 +225,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.white,
-        iconTheme: const IconThemeData(color: AppColors.black),
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
+        title: const Text('Profile'),
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.close : Icons.edit),
@@ -349,6 +363,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
 
                     _buildField(
+                      icon: Icons.credit_card,
+                      label: 'Confirm Account Number',
+                      value: confirmAccountNumberController.text,
+                      controller: confirmAccountNumberController,
+                      keyboardType: TextInputType.number,
+                    ),
+
+                    _buildField(
                       icon: Icons.account_balance,
                       label: 'IFSC Code',
                       value: ifscController.text,
@@ -362,13 +384,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       controller: bankNameController,
                     ),
 
-                    _buildField(
-                      icon: Icons.qr_code,
-                      label: 'UPI ID',
-                      value: upiController.text,
-                      controller: upiController,
-                    ),
-
+                    // _buildField(
+                    //   icon: Icons.qr_code,
+                    //   label: 'UPI ID',
+                    //   value: upiController.text,
+                    //   controller: upiController,
+                    // ),
                     if (isEditing) ...[
                       const SizedBox(height: 8),
                       // AppColors.greenDark,

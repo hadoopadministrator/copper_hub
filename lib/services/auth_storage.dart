@@ -6,8 +6,12 @@ class AuthStorage {
   static const _keyName = 'name';
   static const _keyEmail = 'email';
   static const _keyMobile = 'mobile';
+
+  
   static const _keyRememberMe = 'rememberMe';
+  static const _keyRememberUser = 'rememberUser';
   static const _keyRememberPassword = 'rememberPassword';
+
 
   /// SAVE REMEMBER ME
   static Future<void> saveRememberMe({
@@ -20,9 +24,10 @@ class AuthStorage {
     await prefs.setBool(_keyRememberMe, remember);
 
     if (remember) {
-      await prefs.setString(_keyEmail, emailOrMobile);
+      await prefs.setString(_keyRememberUser, emailOrMobile);
       await prefs.setString(_keyRememberPassword, password);
     } else {
+      await prefs.remove(_keyRememberUser);
       await prefs.remove(_keyRememberPassword);
     }
   }
@@ -31,6 +36,12 @@ class AuthStorage {
   static Future<bool> isRememberMe() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keyRememberMe) ?? false;
+  }
+  
+  /// GET REMEMBER USER (EMAIL / MOBILE)
+  static Future<String?> getRememberUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyRememberUser);
   }
 
   /// GET SAVED PASSWORD
@@ -85,7 +96,7 @@ class AuthStorage {
     await prefs.remove(_keyIsLoggedIn);
     await prefs.remove(_keyUserId);
     await prefs.remove(_keyName);
+    await prefs.remove(_keyEmail);
     await prefs.remove(_keyMobile);
-
   }
 }

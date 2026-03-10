@@ -180,8 +180,8 @@ class _OrderDetailsState extends State<OrderDetails> {
         return AppColors.orangeLight;
 
       case "AWB_FAILED":
-       return Colors.red;
-       
+        return Colors.red;
+
       case "PENDING":
       default:
         return AppColors.orangeLight;
@@ -228,16 +228,7 @@ class _OrderDetailsState extends State<OrderDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.white,
-        iconTheme: const IconThemeData(color: AppColors.black),
-        title: const Text(
-          "Order Details",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
-      ),
+      appBar: AppBar(title: const Text("Order Details")),
       body: SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
