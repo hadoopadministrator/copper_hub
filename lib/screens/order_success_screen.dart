@@ -140,10 +140,9 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                 width: double.infinity,
                 text: "View Order History",
                 onPressed: () {
-                  Navigator.pushNamedAndRemoveUntil(
+                  Navigator.pushReplacementNamed(
                     context,
                     AppRoutes.orderHistory,
-                    (route) => false,
                   );
                 },
               ),

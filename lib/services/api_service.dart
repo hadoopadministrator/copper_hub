@@ -536,8 +536,7 @@ class ApiService {
         'slabName': jsonData['SlabName'],
         'pricePerKg': jsonData['CurrentSellPrice'],
         'remainingQty': jsonData['RemainingQty'],
-        'deliveryOption':
-            jsonData['DeliveryOption'],
+        'deliveryOption': jsonData['DeliveryOption'],
         'data': jsonData,
       };
     } catch (e) {
@@ -826,6 +825,50 @@ class ApiService {
             jsonData['Message'] ??
             (isSuccess ? 'Holdings fetched' : 'No holdings'),
         'data': jsonData['Data'] ?? [],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Network error'};
+    }
+  }
+
+  /// GET DELIVERY CHARGES
+  Future<Map<String, dynamic>> getDeliveryCharges({
+    required int userId,
+    required double weight,
+    required String deliveryOption,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/getDeliveryCharges').replace(
+      queryParameters: {
+        'user_id': userId.toString(),
+        'weight': weight.toString(),
+        'delivery_option': deliveryOption,
+      },
+    );
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      // Remove XML wrapper
+      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess =
+          jsonData['Status']?.toString().toLowerCase() == 'success';
+
+      return {
+        'success': isSuccess,
+        'deliveryCharge': jsonData['Delivery_charge'] ?? 0,
+        'estimatedDays': jsonData['Estimated_days'] ?? 0,
+        'message': jsonData['Message'] ?? (isSuccess ? 'Success' : 'Failed'),
+        'data': jsonData,
       };
     } catch (e) {
       return {'success': false, 'message': 'Network error'};

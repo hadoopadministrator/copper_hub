@@ -2,7 +2,7 @@ import 'package:copper_hub/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
- final String text;
+  final String text;
   final VoidCallback? onPressed;
   final bool isLoading;
   final double? width;
@@ -43,7 +43,9 @@ class CustomButton extends StatelessWidget {
                 width: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: foregroundColor,
+                  color: isDisabled
+                      ? AppColors.black.withValues(alpha: 0.38)
+                      : foregroundColor,
                 ),
               )
             : Text(text, style: const TextStyle(fontSize: 18)),

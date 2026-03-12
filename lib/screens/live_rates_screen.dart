@@ -65,7 +65,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
   // ---------------- Quantity helpers ----------------
 
   ({int min, int? max}) getQtyLimitsFromSlab(String slabName) {
-    final clean = slabName.replaceAll('KG', '').trim();
+    final clean = slabName.toUpperCase().replaceAll('KG', '').trim();
 
     // Fractional slabs 0.25 KG + or 0.5 KG + → min 1, max unlimited
     if (clean.startsWith('0.25') || clean.startsWith('0.5')) {

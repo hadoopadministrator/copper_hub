@@ -138,9 +138,9 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
 
       _setupDeliveryOptions();
 
-      // if (_selectedOption == 'Doorstep Pickup') {
-      //   await _getPickupCharge();
-      // }
+      if (_selectedOption == 'Doorstep Pickup') {
+        await _getPickupCharge();
+      }
       _startPriceTimer();
 
       // _priceTimer?.cancel();
@@ -202,9 +202,9 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
   }
 
   // ---------------- DELIVERY OPTIONS ----------------
+
   // void _setupDeliveryOptions() {
   //   final option = _apiDeliveryOption.trim().toLowerCase();
-
   //   if (option == 'digital' || option == 'digital wallet') {
   //     _options = ['Digital Wallet'];
   //     _selectedOption = 'Digital Wallet';
@@ -272,33 +272,33 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
 
     _qtyDebounce = Timer(const Duration(milliseconds: 500), () {
       if (_selectedOption == 'Doorstep Pickup') {
-        // _getPickupCharge();
+        _getPickupCharge();
       }
     });
   }
 
-  //   Future<void> _getPickupCharge() async {
-  //   final result = await apiService.getPickupCharge(
-  //     userId: userId!,
-  //     qty: _quantity,
-  //   );
+  // ---------------- WEIGHT HELPER ----------------
+  double getUnitWeightFromSlab(String slabName) {
+    final clean = slabName.toUpperCase().replaceAll('KG', '').trim();
 
-  //   if (!mounted) return;
+    if (clean.startsWith('0.25')) return 0.25;
+    if (clean.startsWith('0.5')) return 0.5;
 
-  //   if (result['success'] == true) {
-  //     setState(() {
-  //       pickupCharge = (result['charge'] ?? 0).toDouble();
-  //     });
-  //   }
-  // }
+    return 1;
+  }
 
   // ---------------- CALCULATIONS ----------------
+  double get totalWeight {
+    final unitWeight = getUnitWeightFromSlab(slabName);
+    return _quantity * unitWeight;
+  }
+
   double get subTotal => pricePerKg * _quantity;
 
   // double get courier => _selectedOption == 'Physical Delivery' ? 250 : 0;
 
   double get courier => _selectedOption == 'Doorstep Pickup' ? pickupCharge : 0;
-  double get finalTotal => subTotal - courier;
+  double get finalTotal => subTotal + courier;
 
   // ---------------- DELIVERY ICON ----------------
 
@@ -350,7 +350,12 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
     setState(() => _placingOrder = true);
 
     if (!mounted) return;
-
+    // ---------------- Ensure latest pickup charge ----------------
+    _qtyDebounce?.cancel();
+    if (_selectedOption == 'Doorstep Pickup') {
+      await _getPickupCharge();
+    }
+    // ---------------- Verify latest price ----------------
     final latest = await apiService.getSellDetails(
       userId: userId!,
       slabId: slabId!,
@@ -391,7 +396,7 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
       return;
     }
 
-    /// PLACE SELL ORDER
+    // ---------------- PLACE SELL ORDER ----------------
     final result = await apiService.placeSellOrder(
       userId: userId!,
       slabId: slabId!,
@@ -410,10 +415,9 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
         ),
       );
 
-      Navigator.pushNamedAndRemoveUntil(
+      Navigator.pushReplacementNamed(
         context,
         AppRoutes.orderSuccess,
-        (route) => false,
         arguments: {
           "type": "SELL",
           "qty": _quantity,
@@ -429,6 +433,31 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
             result['message']?.toString() ?? 'Something went wrong',
           ),
         ),
+      );
+    }
+  }
+
+  Future<void> _getPickupCharge() async {
+    if (userId == null || slabId == null) return;
+
+    final result = await apiService.getDeliveryCharges(
+      userId: userId!,
+      weight: totalWeight,
+      deliveryOption: _selectedOption,
+    );
+
+    if (!mounted) return;
+
+    if (result['success'] == true) {
+      setState(() {
+        pickupCharge = (result['deliveryCharge'] ?? 0).toDouble();
+      });
+    } else {
+      setState(() {
+        pickupCharge = 0;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Unable to fetch courier')),
       );
     }
   }
@@ -503,9 +532,7 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
                   setState(() {
                     _quantity = safeQty;
                   });
-                  //  if (_selectedOption == 'Doorstep Pickup') {
-                  //   _getPickupCharge();
-                  // }
+                  _debouncePickupCharge();
                 },
               ),
               const SizedBox(height: 24),
@@ -514,13 +541,13 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
                 value: _selectedOption,
                 items: _options,
                 iconBuilder: _getDeliveryIcon,
-                onChanged: (value) {
+                onChanged: (value) async {
                   setState(() => _selectedOption = value);
-                  //  if (value == 'Doorstep Pickup') {
-                  //   await _getPickupCharge();
-                  // } else {
-                  //   setState(() => pickupCharge = 0);
-                  // }
+                  if (value == 'Doorstep Pickup') {
+                    await _getPickupCharge();
+                  } else {
+                    setState(() => pickupCharge = 0);
+                  }
                 },
               ),
               // if (_selectedOption == 'Physical Delivery')
@@ -545,7 +572,8 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
               const SizedBox(height: 30),
               CustomButton(
                 width: double.infinity,
-                text: _placingOrder ? 'Placing Order...' : 'Confirm Checkout',
+                text: 'Confirm Checkout',
+                isLoading: _placingOrder,
                 onPressed: _placingOrder ? null : _confirmCheckout,
               ),
             ],

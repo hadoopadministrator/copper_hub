@@ -28,8 +28,9 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   String? userEmail;
   String? userMobile;
   int? userId;
+  double pickupCharge = 0;
 
-  String _selectedOption = 'Physical Delivery';
+  String _selectedOption = 'Digital Wallet';
 
   final List<String> _options = [
     'Physical Delivery',
@@ -62,6 +63,36 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
         ).showSnackBar(SnackBar(content: Text(" payment not made $message")));
       },
     );
+  }
+
+  Future<void> _getPickupCharge() async {
+    if (userId == null || cartItems.isEmpty) return;
+
+    final result = await apiService.getDeliveryCharges(
+      userId: userId!,
+      weight: totalWeight,
+      deliveryOption: _selectedOption,
+    );
+
+    if (!mounted) return;
+
+    if (result['success'] == true) {
+      setState(() => pickupCharge = result['deliveryCharge']?.toDouble() ?? 0);
+    } else {
+      setState(() => pickupCharge = 0);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Unable to fetch courier')),
+      );
+    }
+  }
+
+  double getUnitWeightFromSlab(String slabName) {
+    final clean = slabName.toUpperCase().replaceAll('KG', '').trim();
+
+    if (clean.startsWith('0.25')) return 0.25;
+    if (clean.startsWith('0.5')) return 0.5;
+
+    return 1;
   }
 
   Future<void> _initCheckout() async {
@@ -146,27 +177,27 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   }
 
   // ---------------- calculations ----------------
+  double get totalWeight {
+    double weight = 0;
+
+    for (final item in cartItems) {
+      final unitWeight = getUnitWeightFromSlab(item.slab);
+      weight += unitWeight * item.qty;
+    }
+
+    return weight;
+  }
 
   double get totalQty => cartItems.fold(0, (sum, e) => sum + e.qty);
-
-  /// combined price of all slabs
-  // double get totalPrice => cartItems.fold(0, (sum, e) => sum + e.buyPrice);
 
   double get subTotal => cartItems.fold(0, (sum, e) => sum + e.amount);
 
   double get effectivePricePerKg => totalQty == 0 ? 0 : subTotal / totalQty;
 
-  // bool get isSingleItem => cartItems.length == 1;
-
-  // String get pricePerKgLabel =>
-  //     isSingleItem ? 'Price per (KG)' : 'Effective Price per KG';
-
-  // double get pricePerKgValue =>
-  //     isSingleItem ? cartItems.first.buyPrice : effectivePricePerKg;
-
   double get gst => _selectedOption == 'Digital Wallet' ? 0 : subTotal * 0.18;
 
-  double get courierCharges => _selectedOption == 'Physical Delivery' ? 250 : 0;
+  double get courierCharges =>
+      _selectedOption == 'Physical Delivery' ? pickupCharge : 0;
 
   double get finalTotal => subTotal + gst + courierCharges;
 
@@ -182,22 +213,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
         return Icons.local_shipping;
     }
   }
-  //  Widget buildSlabPrices() {
-  //   return Column(
-  //     children: cartItems.map((item) {
-  //       return Padding(
-  //         padding:
-  //             const EdgeInsets.only(bottom: 16),
-  //         child: SummaryRowCard(
-  //           label:
-  //               "Slab ${item.slab} /Quantity (${item.qty.toStringAsFixed(2)} KG)",
-  //           value:
-  //               "Price per (KG): ₹${item.buyPrice.toStringAsFixed(2)} / KG",
-  //         ),
-  //       );
-  //     }).toList(),
-  //   );
-  // }
 
   @override
   void dispose() {
@@ -237,7 +252,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               const SizedBox(height: 24),
               SummaryRowCard(
                 label: 'Quantity (KG)',
-                value: totalQty.toStringAsFixed(2),
+                value: totalWeight.toStringAsFixed(2),
               ),
               const SizedBox(height: 24),
 
@@ -246,8 +261,13 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
                 value: _selectedOption,
                 items: _options,
                 iconBuilder: _getDeliveryIcon,
-                onChanged: (value) {
+                onChanged: (value) async {
                   setState(() => _selectedOption = value);
+                  if (value == 'Physical Delivery') {
+                    await _getPickupCharge();
+                  } else {
+                    setState(() => pickupCharge = 0);
+                  }
                 },
               ),
 
@@ -263,6 +283,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
                 SummaryRowCard(
                   label: 'Courier Charges',
                   value: "₹${courierCharges.toStringAsFixed(2)}",
+                  // totalWeight.toStringAsFixed(2),
                 ),
               const SizedBox(height: 24),
               SummaryRowCard(
@@ -334,7 +355,9 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.orderSuccess,
-        (route) => false,
+        (route) =>
+            route.settings.name ==
+            AppRoutes.liveRates, // keep LiveRates in stack
         arguments: {
           "type": "BUY",
           "qty": totalQty,
