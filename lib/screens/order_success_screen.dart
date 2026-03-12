@@ -15,7 +15,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
   String type = "BUY";
   double? qty;
   double? price;
-  String? orderId;
+  // String? orderId;
 
   bool _dialogShown = false;
 
@@ -35,7 +35,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
     type = args['type']?.toString() ?? "BUY";
     qty = (args['qty'] as num?)?.toDouble() ?? 0;
     price = (args['price'] as num?)?.toDouble() ?? 0;
-    orderId = args['orderId'] as String?;
+    // orderId = args['orderId'] as String?;
   }
 
   void _showRateDialogOnce() {
@@ -93,19 +93,19 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
               const SizedBox(height: 16),
 
               /// ORDER ID
-              if (orderId != null)
-                Column(
-                  children: [
-                    Text(
-                      "Order ID: $orderId",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                ),
+              // if (orderId != null)
+              //   Column(
+              //     children: [
+              //       Text(
+              //         "Order ID: $orderId",
+              //         style: const TextStyle(
+              //           fontSize: 16,
+              //           fontWeight: FontWeight.w500,
+              //         ),
+              //       ),
+              //       const SizedBox(height: 8),
+              //     ],
+              //   ),
 
               /// DETAILS
               if (qty != null && price != null)

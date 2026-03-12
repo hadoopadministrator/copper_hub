@@ -362,7 +362,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
           "type": "BUY",
           "qty": totalQty,
           "price": finalTotal,
-          "orderId": "ORD123456",
+          // "orderId": "ORD123456",
         },
       );
     } else {
