@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String _baseUrl =
-      'https://wealthbridgeimpex.com/WebService2.asmx';
-  // 'https://wealthbridgeimpex.com/webservice.asmx';
+      // 'https://wealthbridgeimpex.com/WebService2.asmx';
+      'https://wealthbridgeimpex.com/webservice.asmx';
 
   /// CLEAN XML RESPONSE
   String _cleanResponse(String body) {

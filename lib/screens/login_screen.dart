@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!isRemember) return;
 
-     final user = await AuthStorage.getRememberUser();
+    final user = await AuthStorage.getRememberUser();
     final password = await AuthStorage.getRememberPassword();
 
     setState(() {
@@ -48,10 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   bool get _isFormValid {
-    return Validators.emailOrMobile(_emailOrMobileController.text.trim()) ==
-            null &&
-        Validators.password(_passwordController.text) == null;
-  }
+  return Validators.emailOrMobile(_emailOrMobileController.text.trim()) ==
+          null &&
+      _passwordController.text.trim().isNotEmpty;
+}
 
   @override
   void dispose() {
@@ -120,7 +120,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
                       onChanged: (_) => setState(() {}),
-                      validator: Validators.password,
+                      // validator: Validators.password,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter password';
+                        }
+                        return null;
+                      },
                       cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Password',

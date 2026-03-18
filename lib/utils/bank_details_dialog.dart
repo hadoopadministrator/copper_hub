@@ -1,5 +1,6 @@
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/utils/app_colors.dart';
+import 'package:copper_hub/utils/validators.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:copper_hub/services/api_service.dart';
@@ -48,6 +49,13 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
     }
   }
 
+  String? _required(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return "Required";
+    }
+    return null;
+  }
+
   Future<void> save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -81,13 +89,21 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
   }
 
   @override
+  void dispose() {
+    accountHolderController.dispose();
+    accountNumberController.dispose();
+    confirmAccountNumberController.dispose();
+    ifscController.dispose();
+    bankNameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.background,
-     title: Text(
-        accountNumberController.text.isEmpty
-            ? "Add Bank Details"
-            : "Update Bank Details",
+      title: Text(
+        widget.bankData == null ? "Add Bank Details" : "Update Bank Details",
       ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20),
       content: SingleChildScrollView(
@@ -100,14 +116,18 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
                 decoration: const InputDecoration(
                   labelText: "Account Holder Name",
                 ),
-                validator: (v) => v == null || v.isEmpty ? "Required" : null,
+                validator: (value) {
+                  return _required(value) ?? Validators.accountHolder(value);
+                },
               ),
 
               TextFormField(
                 controller: accountNumberController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: "Account Number"),
-                validator: (v) => v == null || v.isEmpty ? "Required" : null,
+                validator: (value) {
+                  return _required(value) ?? Validators.accountNumber(value);
+                },
               ),
 
               TextFormField(
@@ -116,29 +136,40 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
                 decoration: const InputDecoration(
                   labelText: "Confirm Account Number",
                 ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) {
-                    return "Confirm account number required";
-                  }
-
-                  if (v != accountNumberController.text) {
-                    return "Account numbers do not match";
-                  }
-
-                  return null;
+                validator: (value) {
+                  final requiredError = _required(value);
+                  if (requiredError != null) return requiredError;
+                  return Validators.confirmAccountNumber(
+                    value?.trim(),
+                    accountNumberController.text.trim(),
+                  );
                 },
               ),
 
               TextFormField(
                 controller: ifscController,
                 decoration: const InputDecoration(labelText: "IFSC Code"),
-                validator: (v) => v == null || v.isEmpty ? "Required" : null,
+                textCapitalization: TextCapitalization.characters,
+                onChanged: (value) {
+                  final upper = value.toUpperCase();
+                  if (value != upper) {
+                    ifscController.value = ifscController.value.copyWith(
+                      text: upper,
+                      selection: TextSelection.collapsed(offset: upper.length),
+                    );
+                  }
+                },
+                validator: (value) {
+                  return _required(value) ?? Validators.ifsc(value);
+                },
               ),
 
               TextFormField(
                 controller: bankNameController,
                 decoration: const InputDecoration(labelText: "Bank Name"),
-                validator: (v) => v == null || v.isEmpty ? "Required" : null,
+                validator: (value) {
+                  return _required(value) ?? Validators.bankName(value);
+                },
               ),
 
               // TextFormField(
@@ -171,7 +202,8 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
         ),
         CustomButton(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          text: loading ? '' : "Save",
+          text: "Save",
+          isLoading: loading,
           onPressed: loading ? null : save,
         ),
       ],

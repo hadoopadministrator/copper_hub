@@ -1,3 +1,4 @@
+import 'package:copper_hub/services/secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthStorage {
@@ -10,7 +11,6 @@ class AuthStorage {
   
   static const _keyRememberMe = 'rememberMe';
   static const _keyRememberUser = 'rememberUser';
-  static const _keyRememberPassword = 'rememberPassword';
 
 
   /// SAVE REMEMBER ME
@@ -25,10 +25,10 @@ class AuthStorage {
 
     if (remember) {
       await prefs.setString(_keyRememberUser, emailOrMobile);
-      await prefs.setString(_keyRememberPassword, password);
+      await SecureStorage.savePassword(password);
     } else {
       await prefs.remove(_keyRememberUser);
-      await prefs.remove(_keyRememberPassword);
+      await SecureStorage.deletePassword();
     }
   }
 
@@ -44,11 +44,11 @@ class AuthStorage {
     return prefs.getString(_keyRememberUser);
   }
 
-  /// GET SAVED PASSWORD
+  /// GET SAVED PASSWORD FROM SECURE STORAGE
   static Future<String?> getRememberPassword() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyRememberPassword);
+    return await SecureStorage.getPassword();
   }
+
 
   static Future<void> saveLoginData({
     required int userId,

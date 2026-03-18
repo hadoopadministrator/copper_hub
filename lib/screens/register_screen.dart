@@ -15,7 +15,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>(); // Form key for validation
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -38,6 +38,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
+  bool _hasAnyBankDetailFilled() {
+    return _accountHolderController.text.trim().isNotEmpty ||
+        _accountNumberController.text.trim().isNotEmpty ||
+        _ifscController.text.trim().isNotEmpty ||
+        _bankNameController.text.trim().isNotEmpty;
+  }
+
+  bool get _isFormValid {
+    final isBasicValid =
+        Validators.fullName(_fullNameController.text.trim()) == null &&
+        Validators.email(_emailController.text.trim()) == null &&
+        Validators.mobile(_mobileController.text.trim()) == null &&
+        Validators.password(_passwordController.text.trim()) == null &&
+        Validators.address(_addressController.text.trim()) == null &&
+        Validators.pincode(_pincodeController.text.trim()) == null;
+
+    final landmark = _landmarkController.text.trim();
+    final gst = _gstController.text.trim();
+    final isOptionalValid =
+        (landmark.isEmpty || Validators.landmark(landmark) == null) &&
+        (gst.isEmpty || Validators.gst(gst) == null);
+    final hasBank = _hasAnyBankDetailFilled();
+    final isBankValid =
+        !hasBank ||
+        (Validators.accountHolder(_accountHolderController.text.trim()) ==
+                null &&
+            Validators.accountNumber(_accountNumberController.text.trim()) ==
+                null &&
+            Validators.confirmAccountNumber(
+                  _confirmAccountNumberController.text.trim(),
+                  _accountNumberController.text.trim(),
+                ) ==
+                null &&
+            Validators.ifsc(_ifscController.text.trim()) == null &&
+            Validators.bankName(_bankNameController.text.trim()) == null);
+    return isBasicValid && isOptionalValid && isBankValid;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _fullNameController.addListener(_updateForm);
+    _emailController.addListener(_updateForm);
+    _mobileController.addListener(_updateForm);
+    _passwordController.addListener(_updateForm);
+    _addressController.addListener(_updateForm);
+    _pincodeController.addListener(_updateForm);
+    _landmarkController.addListener(_updateForm);
+    _gstController.addListener(_updateForm);
+    _accountHolderController.addListener(_updateForm);
+    _accountNumberController.addListener(_updateForm);
+    _confirmAccountNumberController.addListener(_updateForm);
+    _ifscController.addListener(_updateForm);
+    _bankNameController.addListener(_updateForm);
+  }
+
+  void _updateForm() {
+    setState(() {});
+  }
+
   @override
   void dispose() {
     _fullNameController.dispose();
@@ -56,40 +117,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // _upiController.dispose();
 
     super.dispose();
-  }
-
-  // Computed property for enabling/disabling button
-  bool get _isFormValid {
-    final isBasicValid =
-        Validators.fullName(_fullNameController.text) == null &&
-        Validators.email(_emailController.text) == null &&
-        Validators.mobile(_mobileController.text) == null &&
-        Validators.password(_passwordController.text) == null &&
-        Validators.address(_addressController.text) == null &&
-        Validators.pincode(_pincodeController.text) == null;
-
-    final account = _accountNumberController.text.trim();
-    final confirm = _confirmAccountNumberController.text.trim();
-    final isAccountValid = account.isEmpty || (account == confirm);
-    return isBasicValid && isAccountValid;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _fullNameController.addListener(_updateForm);
-    _emailController.addListener(_updateForm);
-    _mobileController.addListener(_updateForm);
-    _passwordController.addListener(_updateForm);
-    _addressController.addListener(_updateForm);
-    _pincodeController.addListener(_updateForm);
-    _accountNumberController.addListener(_updateForm);
-    _confirmAccountNumberController.addListener(_updateForm);
-  }
-
-  void _updateForm() {
-    setState(() {});
   }
 
   @override
@@ -217,7 +244,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: AppDecorations.textField(
                         label: 'Landmark (optional)',
                       ),
-                      validator: Validators.landmark,
+                      validator: (value) {
+                        final text = value?.trim() ?? '';
+                        if (text.isEmpty) return null;
+                        return Validators.landmark(text);
+                      },
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -233,7 +264,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: AppDecorations.textField(
                         label: 'GST Number (optional)',
                       ),
-                      validator: Validators.gst,
+                      onChanged: (value) {
+                        final upper = value.toUpperCase();
+                        if (value != upper) {
+                          _gstController.value = _gstController.value.copyWith(
+                            text: upper,
+                            selection: TextSelection.collapsed(
+                              offset: upper.length,
+                            ),
+                          );
+                        }
+                      },
+                      validator: (value) {
+                        final text = value?.trim() ?? '';
+                        if (text.isEmpty) return null;
+                        return Validators.gst(text);
+                      },
                     ),
                     const SizedBox(height: 30),
                     const Text(
@@ -250,7 +296,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: AppDecorations.textField(
                         label: 'Account Holder Name (optional)',
                       ),
-                      validator: Validators.accountHolder,
+                      validator: (value) {
+                        if (!_hasAnyBankDetailFilled()) return null;
+                        return Validators.accountHolder(value?.trim() ?? '');
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -261,7 +310,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         label: 'Account Number (optional)',
                       ),
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      validator: Validators.accountNumber,
+                      validator: (value) {
+                        if (!_hasAnyBankDetailFilled()) return null;
+                        return Validators.accountNumber(value?.trim() ?? '');
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -272,10 +324,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         label: 'Confirm Account Number (optional)',
                       ),
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      validator: (value) => Validators.confirmAccountNumber(
-                        value,
-                        _accountNumberController.text,
-                      ),
+                      validator: (value) {
+                        if (!_hasAnyBankDetailFilled()) return null;
+                        return Validators.confirmAccountNumber(
+                          value?.trim() ?? '',
+                          _accountNumberController.text.trim(),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -291,7 +346,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: AppDecorations.textField(
                         label: 'IFSC Code (optional)',
                       ),
-                      validator: Validators.ifsc,
+                      onChanged: (value) {
+                        final upper = value.toUpperCase();
+                        if (value != upper) {
+                          _ifscController.value = _ifscController.value
+                              .copyWith(
+                                text: upper,
+                                selection: TextSelection.collapsed(
+                                  offset: upper.length,
+                                ),
+                              );
+                        }
+                      },
+                      validator: (value) {
+                        if (!_hasAnyBankDetailFilled()) return null;
+                        return Validators.ifsc(value?.trim() ?? '');
+                      },
                     ),
 
                     const SizedBox(height: 16),
@@ -302,7 +372,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: AppDecorations.textField(
                         label: 'Bank Name (optional)',
                       ),
-                      validator: Validators.bankName,
+                      validator: (value) {
+                        if (!_hasAnyBankDetailFilled()) return null;
+                        return Validators.bankName(value?.trim() ?? '');
+                      },
                     ),
 
                     // const SizedBox(height: 16),

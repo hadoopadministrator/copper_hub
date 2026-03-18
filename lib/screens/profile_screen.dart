@@ -1,4 +1,5 @@
 import 'package:copper_hub/services/cart_database_service.dart';
+import 'package:copper_hub/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/services/api_service.dart';
@@ -17,7 +18,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final ApiService _apiService = ApiService();
-
+  final _formKey = GlobalKey<FormState>();
   bool isEditing = false;
   bool _isLoading = false;
 
@@ -61,6 +62,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     super.dispose();
   }
+  bool _hasAnyBankDetailFilled() {
+  return accountHolderController.text.trim().isNotEmpty ||
+      accountNumberController.text.trim().isNotEmpty ||
+      confirmAccountNumberController.text.trim().isNotEmpty ||
+      ifscController.text.trim().isNotEmpty ||
+      bankNameController.text.trim().isNotEmpty;
+}
+
+
 
   // Load profile from API
   Future<void> _loadProfile() async {
@@ -101,7 +111,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Update profile API
   Future<void> _updateProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
     if (_userId == null) return;
+
     final fullName = fullNameController.text.trim();
     final email = emailController.text.trim();
     final mobile = mobileController.text.trim();
@@ -112,41 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final bankName = bankNameController.text.trim();
     final accountHolder = accountHolderController.text.trim();
     final accountNumber = accountNumberController.text.trim();
-    final confirmAccountNumber = confirmAccountNumberController.text.trim();
-    final ifsc = ifscController.text.trim();
-
-    // ---- validations (NO API CALL if any fails) ----
-    if (fullName.isEmpty) {
-      _showMessage('Full name is required');
-      return;
-    }
-
-    if (email.isEmpty) {
-      _showMessage('Email is required');
-      return;
-    }
-
-    if (mobile.isEmpty || mobile.length != 10) {
-      _showMessage('Enter valid 10 digit mobile number');
-      return;
-    }
-
-    if (address.isEmpty) {
-      _showMessage('Address is required');
-      return;
-    }
-
-    if (pincode.isEmpty || pincode.length != 6) {
-      _showMessage('Enter valid pincode');
-      return;
-    }
-
-    if (accountNumber.isNotEmpty || confirmAccountNumber.isNotEmpty) {
-      if (accountNumber != confirmAccountNumber) {
-        _showMessage("Account numbers do not match");
-        return;
-      }
-    }
+    final ifsc = ifscController.text.trim().toUpperCase();
 
     setState(() => _isLoading = true);
 
@@ -157,7 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         email: email,
         mobile: mobile,
         address: address,
-        landmark: landmark, // can be empty
+        landmark: landmark,
         pincode: pincode,
         gst: gst,
         bankName: bankName,
@@ -166,7 +145,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ifscCode: ifsc,
       );
 
-      // UPDATE LOCAL STORAGE HERE
       await AuthStorage.saveLoginData(
         userId: _userId!,
         name: fullName,
@@ -195,6 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
     bool enabled = true,
+    String? Function(String?)? validator,
   }) {
     if (isEditing && enabled) {
       return Padding(
@@ -202,7 +181,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          textInputAction: TextInputAction.next,
           decoration: AppDecorations.textField(label: label),
+          validator: validator,
         ),
       );
     }
@@ -230,7 +211,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.close : Icons.edit),
-            onPressed: () {
+            onPressed: () async {
+              // if (isEditing) {
+              //   await _loadProfile();
+              // }
               setState(() {
                 isEditing = !isEditing;
               });
@@ -241,180 +225,221 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 48,
-                      backgroundColor: Colors.amber.shade100,
-                      child: Text(
-                        fullNameController.text.isNotEmpty
-                            ? fullNameController.text.trim()[0].toUpperCase()
-                            : '',
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 48,
+                        backgroundColor: Colors.amber.shade100,
+                        child: Text(
+                          fullNameController.text.isNotEmpty
+                              ? fullNameController.text.trim()[0].toUpperCase()
+                              : '',
+                          style: const TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xffF9B236),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        fullNameController.text,
                         style: const TextStyle(
-                          fontSize: 36,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xffF9B236),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      fullNameController.text,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    _buildField(
-                      icon: Icons.person_outline,
-                      label: 'Full Name',
-                      value: fullNameController.text,
-                      controller: fullNameController,
-                    ),
-                    _buildField(
-                      icon: Icons.email_outlined,
-                      label: 'Email',
-                      value: emailController.text,
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    _buildField(
-                      icon: Icons.phone_outlined,
-                      label: 'Mobile',
-                      value: mobileController.text,
-                      controller: mobileController,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    _buildField(
-                      icon: Icons.location_on_outlined,
-                      label: 'Address',
-                      value: addressController.text,
-                      controller: addressController,
-                    ),
-                    _buildField(
-                      icon: Icons.place_outlined,
-                      label: 'Landmark',
-                      value: landmarkController.text,
-                      controller: landmarkController,
-                    ),
-                    _buildField(
-                      icon: Icons.pin_drop_outlined,
-                      label: 'Pincode',
-                      value: pincodeController.text,
-                      controller: pincodeController,
-                      keyboardType: TextInputType.number,
-                    ),
-                    _buildField(
-                      icon: Icons.receipt_long_outlined,
-                      label: 'GST Number',
-                      value: gstController.text,
-                      controller: gstController,
-                    ),
-                    const SizedBox(height: 16),
-
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Bank Details",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildField(
+                        icon: Icons.person_outline,
+                        label: 'Full Name',
+                        value: fullNameController.text,
+                        controller: fullNameController,
+                        validator: Validators.fullName,
                       ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    _buildField(
-                      icon: Icons.account_circle,
-                      label: 'Account Holder Name',
-                      value: accountHolderController.text,
-                      controller: accountHolderController,
-                    ),
-
-                    _buildField(
-                      icon: Icons.credit_card,
-                      label: 'Account Number',
-                      value: accountNumberController.text,
-                      controller: accountNumberController,
-                      keyboardType: TextInputType.number,
-                    ),
-
-                    _buildField(
-                      icon: Icons.credit_card,
-                      label: 'Confirm Account Number',
-                      value: confirmAccountNumberController.text,
-                      controller: confirmAccountNumberController,
-                      keyboardType: TextInputType.number,
-                    ),
-
-                    _buildField(
-                      icon: Icons.account_balance,
-                      label: 'IFSC Code',
-                      value: ifscController.text,
-                      controller: ifscController,
-                    ),
-
-                    _buildField(
-                      icon: Icons.account_balance_wallet,
-                      label: 'Bank Name',
-                      value: bankNameController.text,
-                      controller: bankNameController,
-                    ),
-
-                    // _buildField(
-                    //   icon: Icons.qr_code,
-                    //   label: 'UPI ID',
-                    //   value: upiController.text,
-                    //   controller: upiController,
-                    // ),
-                    if (isEditing) ...[
-                      const SizedBox(height: 8),
-                      // AppColors.greenDark,
-                      CustomButton(
-                        text: 'Save Changes',
-                        backgroundColor: AppColors.orangeDark,
-                        foregroundColor: AppColors.white,
-                        width: double.infinity,
-                        onPressed: _updateProfile,
+                      _buildField(
+                        icon: Icons.email_outlined,
+                        label: 'Email',
+                        value: emailController.text,
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: Validators.email,
+                      ),
+                      _buildField(
+                        icon: Icons.phone_outlined,
+                        label: 'Mobile',
+                        value: mobileController.text,
+                        controller: mobileController,
+                        keyboardType: TextInputType.phone,
+                        validator: Validators.mobile,
+                      ),
+                      _buildField(
+                        icon: Icons.location_on_outlined,
+                        label: 'Address',
+                        value: addressController.text,
+                        controller: addressController,
+                        validator: Validators.address,
+                      ),
+                      _buildField(
+                        icon: Icons.pin_drop_outlined,
+                        label: 'Pincode',
+                        value: pincodeController.text,
+                        controller: pincodeController,
+                        keyboardType: TextInputType.number,
+                        validator: Validators.pincode,
+                      ),
+                      _buildField(
+                        icon: Icons.place_outlined,
+                        label: 'Landmark',
+                        value: landmarkController.text,
+                        controller: landmarkController,
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) return null;
+                          return Validators.landmark(text);
+                        },
+                      ),
+                      _buildField(
+                        icon: Icons.receipt_long_outlined,
+                        label: 'GST Number',
+                        value: gstController.text,
+                        controller: gstController,
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (text.isEmpty) return null;
+                          return Validators.gst(text);
+                        },
                       ),
                       const SizedBox(height: 16),
 
-                      // DELETE ACCOUNT BUTTON
-                      CustomButton(
-                        text: 'Delete Account',
-                        backgroundColor: Colors.red,
-                        foregroundColor: AppColors.white,
-                        width: double.infinity,
-                        onPressed: _showDeleteDialog,
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Bank Details",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
+
+                      const SizedBox(height: 12),
+
+                      _buildField(
+                        icon: Icons.account_circle,
+                        label: 'Account Holder Name',
+                        value: accountHolderController.text,
+                        controller: accountHolderController,
+                         validator: (value) {
+                          if (!_hasAnyBankDetailFilled()) return null;
+                          return Validators.accountHolder(value?.trim() ?? '');
+                        },
+                      ),
+
+                      _buildField(
+                        icon: Icons.credit_card,
+                        label: 'Account Number',
+                        value: accountNumberController.text,
+                        controller: accountNumberController,
+                        keyboardType: TextInputType.number,
+                         validator: (value) {
+                          if (!_hasAnyBankDetailFilled()) return null;
+                          return Validators.accountNumber(value?.trim() ?? '');
+                        },
+                      ),
+
+                      _buildField(
+                        icon: Icons.credit_card,
+                        label: 'Confirm Account Number',
+                        value: confirmAccountNumberController.text,
+                        controller: confirmAccountNumberController,
+                        keyboardType: TextInputType.number,
+                         validator: (value) {
+                          if (!_hasAnyBankDetailFilled()) return null;
+                          return Validators.confirmAccountNumber(
+                            value?.trim() ?? '',
+                            accountNumberController.text.trim(),
+                          );
+                        },
+                      ),
+
+                      _buildField(
+                        icon: Icons.account_balance,
+                        label: 'IFSC Code',
+                        value: ifscController.text,
+                        controller: ifscController,
+                         validator: (value) {
+                          if (!_hasAnyBankDetailFilled()) return null;
+                          return Validators.ifsc(value?.trim() ?? '');
+                        },
+                      ),
+
+                      _buildField(
+                        icon: Icons.account_balance_wallet,
+                        label: 'Bank Name',
+                        value: bankNameController.text,
+                        controller: bankNameController,
+                         validator: (value) {
+                          if (!_hasAnyBankDetailFilled()) return null;
+                          return Validators.bankName(value?.trim() ?? '');
+                        },
+                      ),
+
+                      // _buildField(
+                      //   icon: Icons.qr_code,
+                      //   label: 'UPI ID',
+                      //   value: upiController.text,
+                      //   controller: upiController,
+                      // ),
+                      if (isEditing) ...[
+                        const SizedBox(height: 8),
+                        // AppColors.greenDark,
+                        CustomButton(
+                          text: 'Save Changes',
+                          backgroundColor: AppColors.orangeDark,
+                          foregroundColor: AppColors.white,
+                          width: double.infinity,
+                          onPressed: _updateProfile,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // DELETE ACCOUNT BUTTON
+                        CustomButton(
+                          text: 'Delete Account',
+                          backgroundColor: Colors.red,
+                          foregroundColor: AppColors.white,
+                          width: double.infinity,
+                          onPressed: _showDeleteDialog,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
