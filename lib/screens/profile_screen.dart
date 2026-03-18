@@ -62,15 +62,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     super.dispose();
   }
+
   bool _hasAnyBankDetailFilled() {
-  return accountHolderController.text.trim().isNotEmpty ||
-      accountNumberController.text.trim().isNotEmpty ||
-      confirmAccountNumberController.text.trim().isNotEmpty ||
-      ifscController.text.trim().isNotEmpty ||
-      bankNameController.text.trim().isNotEmpty;
-}
-
-
+    return accountHolderController.text.trim().isNotEmpty ||
+        accountNumberController.text.trim().isNotEmpty ||
+        confirmAccountNumberController.text.trim().isNotEmpty ||
+        ifscController.text.trim().isNotEmpty ||
+        bankNameController.text.trim().isNotEmpty;
+  }
 
   // Load profile from API
   Future<void> _loadProfile() async {
@@ -172,6 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String value,
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
+    TextInputAction textInputAction = TextInputAction.next,
     bool enabled = true,
     String? Function(String?)? validator,
   }) {
@@ -181,7 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: TextFormField(
           controller: controller,
           keyboardType: keyboardType,
-          textInputAction: TextInputAction.next,
+          textInputAction: textInputAction,
           decoration: AppDecorations.textField(label: label),
           validator: validator,
         ),
@@ -308,6 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: 'Pincode',
                         value: pincodeController.text,
                         controller: pincodeController,
+                        textInputAction: TextInputAction.done,
                         keyboardType: TextInputType.number,
                         validator: Validators.pincode,
                       ),
@@ -327,6 +328,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: 'GST Number',
                         value: gstController.text,
                         controller: gstController,
+                        textInputAction: TextInputAction.done,
                         validator: (value) {
                           final text = value?.trim() ?? '';
                           if (text.isEmpty) return null;
@@ -353,7 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: 'Account Holder Name',
                         value: accountHolderController.text,
                         controller: accountHolderController,
-                         validator: (value) {
+                        validator: (value) {
                           if (!_hasAnyBankDetailFilled()) return null;
                           return Validators.accountHolder(value?.trim() ?? '');
                         },
@@ -365,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         value: accountNumberController.text,
                         controller: accountNumberController,
                         keyboardType: TextInputType.number,
-                         validator: (value) {
+                        validator: (value) {
                           if (!_hasAnyBankDetailFilled()) return null;
                           return Validators.accountNumber(value?.trim() ?? '');
                         },
@@ -377,7 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         value: confirmAccountNumberController.text,
                         controller: confirmAccountNumberController,
                         keyboardType: TextInputType.number,
-                         validator: (value) {
+                        validator: (value) {
                           if (!_hasAnyBankDetailFilled()) return null;
                           return Validators.confirmAccountNumber(
                             value?.trim() ?? '',
@@ -391,7 +393,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: 'IFSC Code',
                         value: ifscController.text,
                         controller: ifscController,
-                         validator: (value) {
+                        validator: (value) {
                           if (!_hasAnyBankDetailFilled()) return null;
                           return Validators.ifsc(value?.trim() ?? '');
                         },
@@ -402,7 +404,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         label: 'Bank Name',
                         value: bankNameController.text,
                         controller: bankNameController,
-                         validator: (value) {
+                        textInputAction: TextInputAction.done,
+                        validator: (value) {
                           if (!_hasAnyBankDetailFilled()) return null;
                           return Validators.bankName(value?.trim() ?? '');
                         },

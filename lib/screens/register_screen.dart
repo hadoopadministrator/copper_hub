@@ -79,7 +79,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-
     _fullNameController.addListener(_updateForm);
     _emailController.addListener(_updateForm);
     _mobileController.addListener(_updateForm);
@@ -225,7 +224,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _pincodeController,
                       keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.next,
+                      textInputAction: TextInputAction.done,
                       maxLength: 6,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
@@ -253,7 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: _gstController,
-                      textInputAction: TextInputAction.next,
+                      textInputAction: TextInputAction.done,
                       textCapitalization: TextCapitalization.characters,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(

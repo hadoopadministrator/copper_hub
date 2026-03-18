@@ -113,6 +113,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
             children: [
               TextFormField(
                 controller: accountHolderController,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: "Account Holder Name",
                 ),
@@ -123,6 +124,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
 
               TextFormField(
                 controller: accountNumberController,
+                textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: "Account Number"),
                 validator: (value) {
@@ -132,6 +134,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
 
               TextFormField(
                 controller: confirmAccountNumberController,
+                textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: "Confirm Account Number",
@@ -148,6 +151,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
 
               TextFormField(
                 controller: ifscController,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(labelText: "IFSC Code"),
                 textCapitalization: TextCapitalization.characters,
                 onChanged: (value) {
@@ -166,6 +170,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
 
               TextFormField(
                 controller: bankNameController,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(labelText: "Bank Name"),
                 validator: (value) {
                   return _required(value) ?? Validators.bankName(value);
