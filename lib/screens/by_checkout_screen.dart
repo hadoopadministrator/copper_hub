@@ -55,12 +55,17 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
 
     paymentService.initPayment(
       onSuccess: (paymentId) {
-        _placeOrder(paymentId);
+        _placeOrder(paymentId); // success calls placeOrder
       },
       onError: (message) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(" payment not made $message")));
+        ).showSnackBar(SnackBar(content: Text("Payment Failed")));
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.liveRates,
+          (route) => false,
+        );
       },
     );
   }
@@ -355,9 +360,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.orderSuccess,
-        (route) =>
-            route.settings.name ==
-            AppRoutes.liveRates, // keep LiveRates in stack
+        (route) => route.settings.name == AppRoutes.liveRates,
         arguments: {
           "type": "BUY",
           "qty": totalQty,

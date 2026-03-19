@@ -21,6 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isEditing = false;
   bool _isLoading = false;
+  bool _isFormValid = false;
 
   int? _userId;
 
@@ -43,23 +44,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
+
+    for (var controller in [
+      fullNameController,
+      emailController,
+      mobileController,
+      addressController,
+      landmarkController,
+      pincodeController,
+      gstController,
+      accountHolderController,
+      accountNumberController,
+      confirmAccountNumberController,
+      ifscController,
+      bankNameController,
+    ]) {
+      controller.addListener(_updateForm);
+    }
+  }
+
+  void _updateForm() {
+    if (!isEditing) return;
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (isValid != _isFormValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
   }
 
   @override
   void dispose() {
-    fullNameController.dispose();
-    emailController.dispose();
-    mobileController.dispose();
-    addressController.dispose();
-    landmarkController.dispose();
-    pincodeController.dispose();
-    gstController.dispose();
-    bankNameController.dispose();
-    accountHolderController.dispose();
-    accountNumberController.dispose();
-    confirmAccountNumberController.dispose();
-    ifscController.dispose();
-
+    for (var controller in [
+      fullNameController,
+      emailController,
+      mobileController,
+      addressController,
+      landmarkController,
+      pincodeController,
+      gstController,
+      accountHolderController,
+      accountNumberController,
+      confirmAccountNumberController,
+      ifscController,
+      bankNameController,
+    ]) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -77,7 +108,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final email = await AuthStorage.getEmail();
-      if (email == null) return;
+      if (email == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
 
       final result = await _apiService.getUserByEmailOrMobile(
         emailOrMobile: email,
@@ -111,51 +145,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Update profile API
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
-
     if (_userId == null) return;
-
-    final fullName = fullNameController.text.trim();
-    final email = emailController.text.trim();
-    final mobile = mobileController.text.trim();
-    final address = addressController.text.trim();
-    final pincode = pincodeController.text.trim();
-    final gst = gstController.text.trim();
-    final landmark = landmarkController.text.trim();
-    final bankName = bankNameController.text.trim();
-    final accountHolder = accountHolderController.text.trim();
-    final accountNumber = accountNumberController.text.trim();
-    final ifsc = ifscController.text.trim().toUpperCase();
-
     setState(() => _isLoading = true);
 
     try {
       await _apiService.updateUserProfile(
         id: _userId!,
-        fullname: fullName,
-        email: email,
-        mobile: mobile,
-        address: address,
-        landmark: landmark,
-        pincode: pincode,
-        gst: gst,
-        bankName: bankName,
-        accountHolder: accountHolder,
-        accountNumber: accountNumber,
-        ifscCode: ifsc,
+        fullname: fullNameController.text.trim(),
+        email: emailController.text.trim(),
+        mobile: mobileController.text.trim(),
+        address: addressController.text.trim(),
+        landmark: landmarkController.text.trim(),
+        pincode: pincodeController.text.trim(),
+        gst: gstController.text.trim(),
+        bankName: bankNameController.text.trim(),
+        accountHolder: accountHolderController.text.trim(),
+        accountNumber: accountNumberController.text.trim(),
+        ifscCode: ifscController.text.trim().toUpperCase(),
       );
 
       await AuthStorage.saveLoginData(
         userId: _userId!,
-        name: fullName,
-        email: email,
-        mobile: mobile,
+        name: fullNameController.text.trim(),
+        email: emailController.text.trim(),
+        mobile: mobileController.text.trim(),
       );
 
       if (!mounted) return;
 
-      setState(() => isEditing = false);
-      _showMessage('Profile updated successfully');
+      setState(() {
+        isEditing = false;
+        _isFormValid = false;
+      });
 
+      _showMessage('Profile updated successfully');
       await _loadProfile();
     } catch (e) {
       if (!mounted) return;
@@ -211,13 +234,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.close : Icons.edit),
-            onPressed: () async {
-              // if (isEditing) {
-              //   await _loadProfile();
-              // }
+            onPressed: () {
               setState(() {
                 isEditing = !isEditing;
               });
+              if (isEditing) {
+                Future.delayed(Duration.zero, _updateForm);
+              }
             },
           ),
         ],
@@ -425,7 +448,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           backgroundColor: AppColors.orangeDark,
                           foregroundColor: AppColors.white,
                           width: double.infinity,
-                          onPressed: _updateProfile,
+                          isLoading: _isLoading,
+                          onPressed: (_isFormValid && !_isLoading)
+                              ? _updateProfile
+                              : null,
                         ),
                         const SizedBox(height: 16),
 

@@ -34,6 +34,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
   final api = ApiService();
 
   bool loading = false;
+  bool _isFormValid = false;
 
   @override
   void initState() {
@@ -47,6 +48,17 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
       ifscController.text = data['ifscCode'] ?? '';
       bankNameController.text = data['bankName'] ?? '';
     }
+    accountHolderController.addListener(_updateForm);
+    accountNumberController.addListener(_updateForm);
+    confirmAccountNumberController.addListener(_updateForm);
+    ifscController.addListener(_updateForm);
+    bankNameController.addListener(_updateForm);
+  }
+
+  void _updateForm() {
+    setState(() {
+      _isFormValid = _formKey.currentState?.validate() ?? false;
+    });
   }
 
   String? _required(String? value) {
@@ -209,7 +221,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           text: "Save",
           isLoading: loading,
-          onPressed: loading ? null : save,
+          onPressed: (_isFormValid && !loading) ? save : null,
         ),
       ],
     );

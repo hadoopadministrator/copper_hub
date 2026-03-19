@@ -5,7 +5,8 @@ class PaymentService {
 
   Function(String paymentId)? onPaymentSuccessCallback;
   Function(String message)? onPaymentErrorCallback;
-  // INIT
+
+  // ================= INIT =================
   void initPayment({
     required Function(String paymentId) onSuccess,
     required Function(String message) onError,
@@ -13,12 +14,13 @@ class PaymentService {
     _razorpay = Razorpay();
     onPaymentSuccessCallback = onSuccess;
     onPaymentErrorCallback = onError;
+
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
     _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
-  // OPEN CHECKOUT
+  // ================= OPEN CHECKOUT =================
   void openCheckout({
     required double amount,
     required String email,
@@ -39,30 +41,33 @@ class PaymentService {
       _razorpay.open(options);
     } catch (e) {
       onPaymentErrorCallback?.call("Payment initialization failed");
-      // print("Error--------------------: $e");
     }
   }
 
-  // SUCCESS
+  // ================= PAYMENT SUCCESS =================
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
     final paymentId = response.paymentId ?? '';
 
     if (paymentId.isEmpty) {
       onPaymentErrorCallback?.call("Invalid payment response");
-
       return;
     }
+    // ---------------- CHANGE ----------------
+    // Call success callback
     onPaymentSuccessCallback?.call(paymentId);
+    // ---------------- END CHANGE ----------------
   }
 
-  // ERROR
+  // ================= PAYMENT ERROR =================
   void _handlePaymentError(PaymentFailureResponse response) {
+    // ---------------- CHANGE ----------------
+    // Call error callback (navigation handled in ByCheckoutScreen)
     onPaymentErrorCallback?.call(response.message ?? "Payment failed");
-    // print("ERROR: ${response.code} - ${response.message}");
+    // ---------------- END CHANGE ----------------
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
-    //    print("External Wallet Selected: ${response.walletName}");
+    // Optional external wallet handling
   }
 
   void dispose() {
