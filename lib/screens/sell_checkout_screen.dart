@@ -420,10 +420,10 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
         AppRoutes.orderSuccess,
         arguments: {
           "type": "SELL",
-          "qty": _quantity,
-          "price": finalTotal,
-          // "orderId": "ORD123456",
-          // "orderId": result['data']?['OrderId'] ?? '',
+          "qty": result['data']['Qty'],
+          "price": result['data']['Total'],
+          "orderId": result['data']['OrderId'],
+          "paymentStatus": result['data']['PaymentStatus'],
         },
       );
     } else {

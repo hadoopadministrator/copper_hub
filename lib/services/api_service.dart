@@ -572,8 +572,7 @@ class ApiService {
         };
       }
 
-      // Remove XML wrapper
-      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+      final cleanJson = _cleanResponse(response.body);
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
       //  print("\n\n SELL --- $jsonData-- \n\n");
@@ -585,7 +584,7 @@ class ApiService {
         'success': isSuccess,
         'message':
             jsonData['Message'] ?? (isSuccess ? 'Sell order placed' : 'Failed'),
-        'data': jsonData,
+        'data': jsonData['Data'] ?? {},
       };
     } catch (e) {
       return {'success': false, 'message': 'Network error'};
@@ -817,7 +816,8 @@ class ApiService {
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
 
-      final bool isSuccess = jsonData['Status'] == true;
+      final bool isSuccess =
+          jsonData['Status']?.toString().toLowerCase() == 'success';
 
       return {
         'success': isSuccess,

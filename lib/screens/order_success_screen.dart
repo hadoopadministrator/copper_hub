@@ -15,7 +15,8 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
   String type = "BUY";
   double? qty;
   double? price;
-  // String? orderId;
+  int? orderId;
+  String? paymentStatus;
 
   bool _dialogShown = false;
 
@@ -35,7 +36,8 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
     type = args['type']?.toString() ?? "BUY";
     qty = (args['qty'] as num?)?.toDouble() ?? 0;
     price = (args['price'] as num?)?.toDouble() ?? 0;
-    // orderId = args['orderId'] as String?;
+    orderId = args['orderId'] as int?;
+    paymentStatus = args['paymentStatus']?.toString();
   }
 
   void _showRateDialogOnce() {
@@ -93,32 +95,47 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
               const SizedBox(height: 16),
 
               /// ORDER ID
-              // if (orderId != null)
-              //   Column(
-              //     children: [
-              //       Text(
-              //         "Order ID: $orderId",
-              //         style: const TextStyle(
-              //           fontSize: 16,
-              //           fontWeight: FontWeight.w500,
-              //         ),
-              //       ),
-              //       const SizedBox(height: 8),
-              //     ],
-              //   ),
+              if (orderId != null)
+                Column(
+                  children: [
+                    Text(
+                      "Order ID: $orderId",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
 
               /// DETAILS
               if (qty != null && price != null)
                 Column(
                   children: [
                     Text(
-                      "Quantity: ${qty!.toStringAsFixed(2)} KG",
+                      "Quantity: ${qty?.toStringAsFixed(2) ?? '0.00'} KG",
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Total Amount: ₹${price!.toStringAsFixed(2)}",
+                      "Total Amount: ₹${price?.toStringAsFixed(2) ?? '0.00'}",
                       style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+
+              if (paymentStatus != null)
+                Column(
+                  children: [
+                    Text(
+                      "Status: $paymentStatus",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: isSell ? Colors.orange : Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -127,7 +144,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
               /// MESSAGE
               Text(
                 isSell
-                    ? "Your sell order is successful. Amount will be credited to your account shortly."
+                    ? "Your sell order is successful. Amount will be credited once processed."
                     : "Your buy order is successful. You can track delivery in Order History.",
                 style: const TextStyle(fontSize: 16, color: Colors.grey),
                 textAlign: TextAlign.center,
