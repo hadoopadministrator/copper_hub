@@ -26,13 +26,16 @@ class _OrderHistoryState extends State<OrderHistory> {
   Future<void> fetchOrders() async {
     final userId = await AuthStorage.getUserId();
     if (userId == null) return;
-    // Example: Replace 4 with actual logged-in user's ID
+
     final result = await ApiService().getOrdersByUser(userId: userId);
     if (!mounted) return;
+
     if (result['success'] == true) {
       setState(() {
         // Convert dynamic list to Map<String, dynamic>
-        orders = List<Map<String, dynamic>>.from(result['data']);
+        orders = (result['data'] as List)
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
         isLoading = false;
       });
     } else {
@@ -195,7 +198,7 @@ class _OrderHistoryState extends State<OrderHistory> {
             slab: order["Slab"] ?? "",
             type: order["Type"] ?? "",
             quantity: order["Qty"]?.toString() ?? "",
-            total: "₹${order["Total"]?.toStringAsFixed(2) ?? "0"}",
+            total: "₹${(order["Total"] as num?)?.toDouble().toStringAsFixed(2) ?? "0.00"}",
             status: order["PaymentStatus"] ?? "",
           ),
         );

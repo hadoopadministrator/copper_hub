@@ -414,7 +414,9 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
           content: Text(result['message']?.toString() ?? 'Sell order placed'),
         ),
       );
-
+      // print(
+      //   "Type: SELL, Qty: ${result['data']['Qty']}, Price: ${result['data']['Total']}, OrderId: ${result['data']['OrderId']}, PaymentStatus: ${result['data']['PaymentStatus']}",
+      // );
       Navigator.pushReplacementNamed(
         context,
         AppRoutes.orderSuccess,

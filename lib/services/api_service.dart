@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String _baseUrl =
-      // 'https://wealthbridgeimpex.com/WebService2.asmx';
-      'https://wealthbridgeimpex.com/webservice.asmx';
+      'https://wealthbridgeimpex.com/WebService2.asmx';
+  // 'https://wealthbridgeimpex.com/webservice.asmx';
 
   /// CLEAN XML RESPONSE
   String _cleanResponse(String body) {
@@ -390,16 +390,30 @@ class ApiService {
         };
       }
 
-      // Remove XML wrapper
-      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+      final cleanJson = _cleanResponse(response.body);
 
-      // Decode JSON
-      final List<dynamic> jsonData = jsonDecode(cleanJson);
-      // print('\ngetOrdersByUser:$jsonData\n');
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
 
-      return {'success': true, 'data': jsonData};
+      print('\ngetOrdersByUser FULL:$jsonData\n');
+
+      final bool isSuccess =
+          jsonData['Status']?.toString().toLowerCase() == 'success';
+
+      if (!isSuccess) {
+        return {
+          'success': false,
+          'message': jsonData['Message'] ?? 'Failed to fetch orders',
+        };
+      }
+
+      final List<dynamic> orders = jsonData['Data'] ?? [];
+
+      print('\ngetOrdersByUser LIST:$orders\n');
+
+      return {'success': true, 'data': orders};
     } catch (e) {
-      return {'success': false, 'message': 'Something went wrong'};
+      print("ERROR getOrdersByUser: $e");
+      return {'success': false, 'message': e.toString()};
     }
   }
 
@@ -424,7 +438,7 @@ class ApiService {
 
       // Decode JSON
       final List<dynamic> jsonData = jsonDecode(cleanJson);
-      // print('\ngetOrderById:$jsonData\n');
+      print('\ngetOrderById:$jsonData\n');
 
       // Usually GetOrderByID returns a list with one object, extract first
       final Map<String, dynamic> orderData = jsonData.isNotEmpty
