@@ -335,6 +335,20 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       return;
     }
 
+    // ================== IMPORTANT FIX START ==================
+  // Re-sync backend cart with latest local cart
+
+  // for (final item in cartItems) {
+  //   await apiService.addToCart(
+  //     userId: userId!,
+  //     slabName: item.slab,
+  //     pricePerKg: item.buyPrice,
+  //     qty: item.qty.toInt(),
+  //     minWeight: 1, // you can adjust if needed
+  //     maxWeight: item.qty.toInt(),
+  //   );
+  // }
+
     final result = await apiService.placeOrderFromCart(
       userId: userId!,
       razorpayPaymentId: razorpayPaymentId,
@@ -346,6 +360,9 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     if (!mounted) return;
 
     if (result['success'] == true) {
+      //  print(
+      //   "Type: BUY, DAta: ${result['data']}",
+      // );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? "Order placed successfully"),
@@ -357,15 +374,20 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
 
       // navigate success
       if (!mounted) return;
+      final data = result['data']['Data'];
+      // print(
+      //   "Type: BUY, Qty: ${data['Data']['TotalQty']}, Price: ${data['Data']['FinalTotal']}, OrderId: ${data['Data']['OrderId']}, PaymentStatus: ${data['Data']['PaymentStatus']}",
+      // );
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.orderSuccess,
         (route) => route.settings.name == AppRoutes.liveRates,
         arguments: {
           "type": "BUY",
-          "qty": totalQty,
-          "price": finalTotal,
-          // "orderId": "ORD123456",
+          "qty": data['TotalQty'],
+          "price": data['FinalTotal'],
+          "orderId": data['OrderId'],
+          "paymentStatus": data['PaymentStatus'],
         },
       );
     } else {

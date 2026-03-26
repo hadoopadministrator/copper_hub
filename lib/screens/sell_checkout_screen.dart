@@ -143,12 +143,6 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
       }
       _startPriceTimer();
 
-      // _priceTimer?.cancel();
-      // _priceTimer = Timer.periodic(
-      //   const Duration(seconds: 15),
-      //   (_) => _refreshPrice(),
-      // );
-
       setState(() => _loading = false);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -203,23 +197,6 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
 
   // ---------------- DELIVERY OPTIONS ----------------
 
-  // void _setupDeliveryOptions() {
-  //   final option = _apiDeliveryOption.trim().toLowerCase();
-  //   if (option == 'digital' || option == 'digital wallet') {
-  //     _options = ['Digital Wallet'];
-  //     _selectedOption = 'Digital Wallet';
-  //   } else if (option == 'physical' || option == 'physical delivery') {
-  //     _options = ['Physical Delivery', 'Self Pickup'];
-  //     _selectedOption = 'Physical Delivery';
-  //   } else if (option == 'pickup' || option == 'self pickup') {
-  //     _options = ['Self Pickup', 'Physical Delivery'];
-  //     _selectedOption = 'Self Pickup';
-  //   } else {
-  //     _options = ['Self Pickup'];
-  //     _selectedOption = 'Self Pickup';
-  //   }
-  // }
-
   void _setupDeliveryOptions() {
     final option = _apiDeliveryOption.trim().toLowerCase();
 
@@ -242,19 +219,11 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
   void _incrementQty() {
     if (_quantity >= remainingQty) return;
     _updateQty(_quantity + 1);
-    // setState(() {
-    //   _quantity++;
-    //   _qtyController.text = _quantity.toString();
-    // });
   }
 
   void _decrementQty() {
     if (_quantity <= 1) return;
     _updateQty(_quantity - 1);
-    // setState(() {
-    //   _quantity--;
-    //   _qtyController.text = _quantity.toString();
-    // });
   }
 
   void _updateQty(int qty) {
@@ -295,28 +264,11 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
 
   double get subTotal => pricePerKg * _quantity;
 
-  // double get courier => _selectedOption == 'Physical Delivery' ? 250 : 0;
-
   double get courier => _selectedOption == 'Doorstep Pickup' ? pickupCharge : 0;
   double get finalTotal => subTotal + courier;
 
   // ---------------- DELIVERY ICON ----------------
 
-  // IconData _getDeliveryIcon(String option) {
-  //   switch (option) {
-  //     case 'Physical Delivery':
-  //       return Icons.local_shipping;
-
-  //     case 'Digital Wallet':
-  //       return Icons.account_balance_wallet;
-
-  //     case 'Self Pickup':
-  //       return Icons.store;
-
-  //     default:
-  //       return Icons.local_shipping;
-  //   }
-  // }
   IconData _getDeliveryIcon(String option) {
     switch (option) {
       case 'Doorstep Pickup':
@@ -392,7 +344,6 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
         ),
       );
 
-      // setState(() => _placingOrder = false);
       return;
     }
 
