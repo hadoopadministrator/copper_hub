@@ -343,7 +343,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   //     userId: userId!,
   //     slabName: item.slab,
   //     pricePerKg: item.buyPrice,
-  //     qty: item.qty.toInt(),
+  //     qty: item.qty,
   //     minWeight: 1, // you can adjust if needed
   //     maxWeight: item.qty.toInt(),
   //   );
