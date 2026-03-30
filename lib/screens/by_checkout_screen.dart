@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:copper_hub/models/cart_item_model.dart';
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/services/api_service.dart';
 import 'package:copper_hub/services/auth_storage.dart';
-import 'package:copper_hub/services/cart_database_service.dart';
 import 'package:copper_hub/services/payment_service.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:copper_hub/widgets/custom_dropdown.dart';
@@ -22,7 +20,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
   final PaymentService paymentService = PaymentService();
   final ApiService apiService = ApiService();
 
-  List<CartItemModel> cartItems = [];
+  List<dynamic> cartItems = [];
   bool _loading = true;
 
   String? userEmail;
@@ -48,10 +46,10 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     _initCheckout();
 
     /// LIVE AUTO PRICE REFRESH EVERY 15 SEC
-    _priceTimer = Timer.periodic(
-      const Duration(seconds: 15),
-      (_) => _syncCartWithLiveRates(silent: true),
-    );
+    // _priceTimer = Timer.periodic(
+    //   const Duration(seconds: 15),
+    //   (_) => _syncCartWithLiveRates(silent: true),
+    // );
 
     paymentService.initPayment(
       onSuccess: (paymentId) {
@@ -102,102 +100,132 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
 
   Future<void> _initCheckout() async {
     await _loadUser();
-    await _syncCartWithLiveRates();
+    await _fetchCart();
+    // await _syncCartWithLiveRates();
   }
 
+  // ================= INIT =================
   Future<void> _loadUser() async {
     userEmail = await AuthStorage.getEmail();
     userMobile = await AuthStorage.getMobile();
     userId = await AuthStorage.getUserId();
   }
 
-  // ================= SYNC CART WITH LIVE RATES =================
+  // ================= GET CART FROM API =================
+  Future<void> _fetchCart() async {
+    if (userId == null) return;
 
-  Future<void> _syncCartWithLiveRates({bool silent = false}) async {
-    if (!mounted) return;
+    setState(() => _loading = true);
 
-    if (!silent) {
-      setState(() => _loading = true);
-    }
-
-    final result = await apiService.getLiveCopperRate();
+    final result = await apiService.getCart(userId: userId!);
 
     if (!mounted) return;
 
     if (result['success'] == true) {
-      final slabs = result['data']['Slabs'] as List;
-
-      final db = CartDatabaseService.instance;
-      final items = await db.getCartItems();
-
-      bool priceChanged = false;
-
-      for (final item in items) {
-        final liveSlab = slabs.cast<Map<String, dynamic>?>().firstWhere(
-          (s) => s?['Id'] == item.slabId,
-          orElse: () => null,
-        );
-
-        if (liveSlab != null) {
-          final newBuyPrice =
-              double.tryParse(liveSlab['BuyPrice'].toString()) ?? item.buyPrice;
-
-          if ((newBuyPrice - item.buyPrice).abs() >= 0.01) {
-            await db.updatePrice(item.id!, newBuyPrice);
-            priceChanged = true;
-          }
-        }
-      }
-
-      final updatedItems = await db.getCartItems();
-
-      if (!mounted) return;
-
       setState(() {
-        cartItems = updatedItems;
+        cartItems = result['data'];
         _loading = false;
       });
-
-      /// show only when price changed and silent sync
-      if (silent && priceChanged) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(
-            SnackBar(
-              content: Text("Price updated based on live market"),
-              duration: const Duration(seconds: 2),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-      }
     } else {
-      if (!silent && mounted) {
-        setState(() => _loading = false);
+      setState(() => _loading = false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? "Failed to sync prices")),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? "Cart load failed")),
+      );
     }
   }
+
+  // ================= SYNC CART WITH LIVE RATES =================
+
+  // Future<void> _syncCartWithLiveRates({bool silent = false}) async {
+  //   if (!mounted) return;
+
+  //   if (!silent) {
+  //     setState(() => _loading = true);
+  //   }
+
+  //   final result = await apiService.getLiveCopperRate();
+
+  //   if (!mounted) return;
+
+  //   if (result['success'] == true) {
+  //     final slabs = result['data']['Slabs'] as List;
+
+  //     final db = CartDatabaseService.instance;
+  //     final items = await db.getCartItems();
+
+  //     bool priceChanged = false;
+
+  //     for (final item in items) {
+  //       final liveSlab = slabs.cast<Map<String, dynamic>?>().firstWhere(
+  //         (s) => s?['Id'] == item.slabId,
+  //         orElse: () => null,
+  //       );
+
+  //       if (liveSlab != null) {
+  //         final newBuyPrice =
+  //             double.tryParse(liveSlab['BuyPrice'].toString()) ?? item.buyPrice;
+
+  //         if ((newBuyPrice - item.buyPrice).abs() >= 0.01) {
+  //           await db.updatePrice(item.id!, newBuyPrice);
+  //           priceChanged = true;
+  //         }
+  //       }
+  //     }
+
+  //     final updatedItems = await db.getCartItems();
+
+  //     if (!mounted) return;
+
+  //     setState(() {
+  //       cartItems = updatedItems;
+  //       _loading = false;
+  //     });
+
+  //     /// show only when price changed and silent sync
+  //     if (silent && priceChanged) {
+  //       ScaffoldMessenger.of(context)
+  //         ..hideCurrentSnackBar()
+  //         ..showSnackBar(
+  //           SnackBar(
+  //             content: Text("Price updated based on live market"),
+  //             duration: const Duration(seconds: 2),
+  //             behavior: SnackBarBehavior.floating,
+  //           ),
+  //         );
+  //     }
+  //   } else {
+  //     if (!silent && mounted) {
+  //       setState(() => _loading = false);
+
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text(result['message'] ?? "Failed to sync prices")),
+  //       );
+  //     }
+  //   }
+  // }
 
   // ---------------- calculations ----------------
-  double get totalWeight {
-    double weight = 0;
+  // double get totalWeight {
+  //   double weight = 0;
 
-    for (final item in cartItems) {
-      final unitWeight = getUnitWeightFromSlab(item.slab);
-      weight += unitWeight * item.qty;
-    }
+  //   for (final item in cartItems) {
+  //     final unitWeight = getUnitWeightFromSlab(item.slab);
+  //     weight += unitWeight * item.qty;
+  //   }
 
-    return weight;
-  }
+  //   return weight;
+  // }
 
-  double get totalQty => cartItems.fold(0, (sum, e) => sum + e.qty);
+  double get totalWeight =>
+      cartItems.fold(0, (sum, e) => sum + (e['Quantity'] ?? 0));
 
-  double get subTotal => cartItems.fold(0, (sum, e) => sum + e.amount);
+  // double get totalQty => cartItems.fold(0, (sum, e) => sum + e.qty);
 
-  double get effectivePricePerKg => totalQty == 0 ? 0 : subTotal / totalQty;
+  double get subTotal =>
+      cartItems.fold(0, (sum, e) => sum + (e['TotalAmount'] ?? 0));
+
+  // double get effectivePricePerKg => totalQty == 0 ? 0 : subTotal / totalQty;
 
   double get gst => _selectedOption == 'Digital Wallet' ? 0 : subTotal * 0.18;
 
@@ -242,7 +270,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               // buildSlabPrices(),
               SummaryRowCard(
                 label: 'Slab',
-                value: cartItems.map((e) => e.slab).join(', '),
+                value: cartItems.map((e) => "₹${e['SlabName']}").join(', '),
                 // value: 'CART ITEMS',
               ),
               const SizedBox(height: 24),
@@ -251,7 +279,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               SummaryRowCard(
                 label: 'Price per (KG)',
                 value: cartItems
-                    .map((e) => "₹${e.buyPrice.toStringAsFixed(2)}")
+                    .map((e) => "₹${(e['PricePerKg'] ?? 0).toStringAsFixed(2)}")
                     .join(', '),
               ),
               const SizedBox(height: 24),
@@ -336,18 +364,18 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     }
 
     // ================== IMPORTANT FIX START ==================
-  // Re-sync backend cart with latest local cart
+    // Re-sync backend cart with latest local cart
 
-  // for (final item in cartItems) {
-  //   await apiService.addToCart(
-  //     userId: userId!,
-  //     slabName: item.slab,
-  //     pricePerKg: item.buyPrice,
-  //     qty: item.qty,
-  //     minWeight: 1, // you can adjust if needed
-  //     maxWeight: item.qty.toInt(),
-  //   );
-  // }
+    // for (final item in cartItems) {
+    //   await apiService.addToCart(
+    //     userId: userId!,
+    //     slabName: item.slab,
+    //     pricePerKg: item.buyPrice,
+    //     qty: item.qty,
+    //     minWeight: 1, // you can adjust if needed
+    //     maxWeight: item.qty.toInt(),
+    //   );
+    // }
 
     final result = await apiService.placeOrderFromCart(
       userId: userId!,
@@ -370,7 +398,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       );
 
       // clear cart
-      await CartDatabaseService.instance.clearCart();
+      // await CartDatabaseService.instance.clearCart();
 
       // navigate success
       if (!mounted) return;

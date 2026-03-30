@@ -1,67 +1,72 @@
 class CartItemModel {
-  final int? id;
+  final int cartId;
+  final int userId;
   final int slabId;
-  final String slab;
- final double buyPrice;
-  final double sellPrice;
-  final double qty;
-  final double amount;
-  final String createdAt;
+
+  final String slabName;
+  final int minWeight;
+  final int maxWeight;
+
+  final double pricePerKg;
+  final double quantity;
+  final double totalAmount;
+
+  final String addedOn;
 
   CartItemModel({
-    this.id,
+    required this.cartId,
+    required this.userId,
     required this.slabId,
-    required this.slab,
-    required this.buyPrice,
-    required this.sellPrice,
-    required this.qty,
-    required this.amount,
-    required this.createdAt,
+    required this.slabName,
+    required this.minWeight,
+    required this.maxWeight,
+    required this.pricePerKg,
+    required this.quantity,
+    required this.totalAmount,
+    required this.addedOn,
   });
 
-  /// Create object from DB map
-  factory CartItemModel.fromMap(Map<String, dynamic> map) {
+  /// FROM API
+  factory CartItemModel.fromJson(Map<String, dynamic> json) {
     return CartItemModel(
-      id: map['id'] as int?,
-       slabId: map['slabId'] as int,
-      slab: map['slab'] as String,
-       buyPrice: (map['buyPrice'] as num).toDouble(),
-      sellPrice: (map['sellPrice'] as num).toDouble(),
-      qty: (map['qty'] as num).toDouble(),
-      amount: (map['amount'] as num).toDouble(),
-      createdAt: map['createdAt'] as String,
+      cartId: json['CartID'] ?? 0,
+      userId: json['UserID'] ?? 0,
+      slabId: json['SlabId'] ?? 0,
+
+      slabName: json['SlabName'] ?? '',
+      minWeight: json['MinWeight'] ?? 0,
+      maxWeight: json['MaxWeight'] ?? 0,
+
+      pricePerKg:
+          (json['PricePerKg'] as num?)?.toDouble() ?? 0.0,
+
+      quantity:
+          (json['Quantity'] as num?)?.toDouble() ?? 0.0,
+
+      totalAmount:
+          (json['TotalAmount'] as num?)?.toDouble() ?? 0.0,
+
+      addedOn: json['AddedOn'] ?? '',
     );
   }
 
-  /// Convert object to DB map
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'slabId': slabId,
-      'slab': slab,
-      'buyPrice': buyPrice,
-      'sellPrice': sellPrice,
-      'qty': qty,
-      'amount': amount,
-      'createdAt': createdAt,
-    };
-  }
-
-  /// Helper for recalculating amount
+  /// OPTIONAL (update locally if needed)
   CartItemModel copyWith({
-    int? id,
-    double? qty,
+    double? quantity,
   }) {
-    final newQty = qty ?? this.qty;
+    final newQty = quantity ?? this.quantity;
+
     return CartItemModel(
-     id: id ?? this.id,
+      cartId: cartId,
+      userId: userId,
       slabId: slabId,
-      slab: slab,
-      buyPrice: buyPrice,
-      sellPrice: sellPrice,
-      qty: newQty,
-      amount:buyPrice * newQty,
-      createdAt: createdAt,
+      slabName: slabName,
+      minWeight: minWeight,
+      maxWeight: maxWeight,
+      pricePerKg: pricePerKg,
+      quantity: newQty,
+      totalAmount: pricePerKg * newQty,
+      addedOn: addedOn,
     );
   }
 }

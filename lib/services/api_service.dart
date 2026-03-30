@@ -20,98 +20,100 @@ class ApiService {
   }
 
   /// REGISTER USER (POST)
- Future<Map<String, dynamic>> registerUser({
-  required String fullName,
-  required String email,
-  required String mobile,
-  required String password,
-  required String address,
-  required String landmark,
-  required String pincode,
-  required String gst,
-  required String bankName,
-  required String accountHolderName,
-  required String accountNumber,
-  required String ifscCode,
-}) async {
-  final Uri url = Uri.parse('$_baseUrl/RegisterUser');
+  Future<Map<String, dynamic>> registerUser({
+    required String fullName,
+    required String email,
+    required String mobile,
+    required String password,
+    required String address,
+    required String landmark,
+    required String pincode,
+    required String gst,
+    required String bankName,
+    required String accountHolderName,
+    required String accountNumber,
+    required String ifscCode,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/RegisterUser');
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'fullname': fullName.trim(),
-        'email': email.trim(),
-        'mobile': mobile.trim(),
-        'password': password.trim(),
-        'address': address.trim(),
-        'landmark': landmark.trim(),
-        'pincode': pincode.trim(),
-        'gst': gst.trim(),
-        'bank_name': bankName.trim(),
-        'account_holder_name': accountHolderName.trim(),
-        'account_number': accountNumber.trim(),
-        'ifsc_code': ifscCode.trim(),
-      },
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'fullname': fullName.trim(),
+          'email': email.trim(),
+          'mobile': mobile.trim(),
+          'password': password.trim(),
+          'address': address.trim(),
+          'landmark': landmark.trim(),
+          'pincode': pincode.trim(),
+          'gst': gst.trim(),
+          'bank_name': bankName.trim(),
+          'account_holder_name': accountHolderName.trim(),
+          'account_number': accountNumber.trim(),
+          'ifsc_code': ifscCode.trim(),
+        },
+      );
 
-    if (response.statusCode != 200) {
-      return {'success': false, 'message': 'Server error'};
+      if (response.statusCode != 200) {
+        return {'success': false, 'message': 'Server error'};
+      }
+
+      final cleanJson = _cleanResponse(response.body);
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess = _isSuccess(jsonData);
+
+      return {
+        'success': isSuccess,
+        'message':
+            jsonData['Message'] ??
+            (isSuccess ? 'Registered successfully' : 'Registration failed'),
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
     }
-
-    final cleanJson = _cleanResponse(response.body);
-    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-    final bool isSuccess = _isSuccess(jsonData);
-
-    return {
-      'success': isSuccess,
-      'message': jsonData['Message'] ??
-          (isSuccess ? 'Registered successfully' : 'Registration failed'),
-    };
-  } catch (e) {
-    return {'success': false, 'message': 'Something went wrong'};
   }
-}
 
   /// LOGIN USER (POST)
   Future<Map<String, dynamic>> loginUser({
-  required String emailOrMobile,
-  required String password,
-}) async {
-  final Uri url = Uri.parse('$_baseUrl/LoginUser');
+    required String emailOrMobile,
+    required String password,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/LoginUser');
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'emailOrMobile': emailOrMobile.trim(),
-        'password': password.trim(),
-      },
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'emailOrMobile': emailOrMobile.trim(),
+          'password': password.trim(),
+        },
+      );
 
-    if (response.statusCode != 200) {
-      return {'success': false, 'message': 'Server error'};
+      if (response.statusCode != 200) {
+        return {'success': false, 'message': 'Server error'};
+      }
+
+      final cleanJson = _cleanResponse(response.body);
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess = _isSuccess(jsonData);
+
+      return {
+        'success': isSuccess,
+        'message':
+            jsonData['Message'] ??
+            (isSuccess ? 'Login successful' : 'Login failed'),
+        'data': jsonData,
+        'userId': jsonData['Id'],
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
     }
-
-    final cleanJson = _cleanResponse(response.body);
-    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-    final bool isSuccess = _isSuccess(jsonData);
-
-    return {
-      'success': isSuccess,
-      'message': jsonData['Message'] ??
-          (isSuccess ? 'Login successful' : 'Login failed'),
-      'data': jsonData,
-      'userId': jsonData['Id'],
-    };
-  } catch (e) {
-    return {'success': false, 'message': 'Something went wrong'};
   }
-}
 
   /// Update User Profile (POST)
   Future<Map<String, dynamic>> updateUserProfile({
@@ -211,39 +213,35 @@ class ApiService {
   }
 
   /// DELETE USER ACCOUNT (POST)
-  Future<Map<String, dynamic>> deleteUserAccount({
-  required int userId,
-}) async {
-  final Uri url = Uri.parse('$_baseUrl/DeleteUserAccount');
+  Future<Map<String, dynamic>> deleteUserAccount({required int userId}) async {
+    final Uri url = Uri.parse('$_baseUrl/DeleteUserAccount');
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'id': userId.toString(),
-      },
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'id': userId.toString()},
+      );
 
-    if (response.statusCode != 200) {
-      return {'success': false, 'message': 'Server error'};
+      if (response.statusCode != 200) {
+        return {'success': false, 'message': 'Server error'};
+      }
+
+      final cleanJson = _cleanResponse(response.body);
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess = _isSuccess(jsonData);
+
+      return {
+        'success': isSuccess,
+        'message':
+            jsonData['Message'] ??
+            (isSuccess ? 'Account deleted' : 'Delete failed'),
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
     }
-
-    final cleanJson = _cleanResponse(response.body);
-    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-    final bool isSuccess = _isSuccess(jsonData);
-
-    return {
-      'success': isSuccess,
-      'message':
-          jsonData['Message'] ??
-          (isSuccess ? 'Account deleted' : 'Delete failed'),
-    };
-  } catch (e) {
-    return {'success': false, 'message': 'Something went wrong'};
   }
-}
 
   /// GET LIVE COPPER RATE (GET)
   Future<Map<String, dynamic>> getLiveCopperRate() async {
@@ -274,52 +272,196 @@ class ApiService {
 
   /// ADD TO CART (POST)
   Future<Map<String, dynamic>> addToCart({
-  required int userId,
-  required String slabName,
-  required double pricePerKg,
-  required int qty,
-  required int minWeight,
-  required int maxWeight,
-}) async {
-  final Uri url = Uri.parse('$_baseUrl/AddToCart');
+    required int userId,
+    required int slabId,
+    required String slabName,
+    required double pricePerKg,
+    required double qty,
+    required double minWeight,
+    required double maxWeight,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/AddToCart');
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
+    try {
+      final body = {
         'user_id': userId.toString(),
+        'slab_id': slabId.toString(),
         'slabName': slabName,
         'pricePerKg': pricePerKg.toString(),
         'qty': qty.toString(),
         'minWeight': minWeight.toString(),
         'maxWeight': maxWeight.toString(),
-      },
-    );
-
-    if (response.statusCode != 200) {
-      return {
-        'success': false,
-        'message': 'Server error: ${response.statusCode}',
       };
+
+      print("FINAL API BODY: $body");
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: body,
+      );
+
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      final cleanJson = _cleanResponse(response.body);
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess =
+          jsonData['Status']?.toString().toLowerCase() == 'success';
+
+      return {
+        'success': isSuccess,
+        'message':
+            jsonData['Message'] ??
+            (isSuccess ? 'Added to cart' : 'Failed to add to cart'),
+        'data': jsonData,
+      };
+    } catch (e) {
+      print("ADD TO CART ERROR: $e");
+      return {'success': false, 'message': 'Something went wrong'};
     }
-
-    final cleanJson = _cleanResponse(response.body);
-    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-    final bool isSuccess =
-        jsonData['Status']?.toString().toLowerCase() == 'success';
-      // print("addtocart $jsonData");
-    return {
-      'success': isSuccess,
-      'message': jsonData['Message'] ??
-          (isSuccess ? 'Added to cart' : 'Failed to add to cart'),
-      'data': jsonData,
-    };
-  } catch (e) {
-    return {'success': false, 'message': 'Something went wrong'};
   }
-}
+
+  /// GET CART (GET)
+  Future<Map<String, dynamic>> getCart({required int userId}) async {
+    final Uri url = Uri.parse(
+      '$_baseUrl/GetCart',
+    ).replace(queryParameters: {'user_id': userId.toString()});
+
+    try {
+      print("GET CART URL: $url");
+
+      final response = await http.get(url);
+
+      print("STATUS CODE: ${response.statusCode}");
+      print("RAW RESPONSE: ${response.body}");
+
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      // Remove XML wrapper
+      final cleanJson = _cleanResponse(response.body);
+
+      print("CLEAN JSON: $cleanJson");
+
+      if (cleanJson.isEmpty) {
+        return {'success': false, 'message': 'Empty response'};
+      }
+
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      print("DECODED JSON: $jsonData");
+
+      final bool isSuccess = _isSuccess(jsonData);
+
+      if (!isSuccess) {
+        return {
+          'success': false,
+          'message': jsonData['Message'] ?? 'Failed to fetch cart',
+        };
+      }
+
+      final List<dynamic> cartList = jsonData['Data'] ?? [];
+
+      print("CART LIST: $cartList");
+
+      return {
+        'success': true,
+        'message': jsonData['Message'],
+        'data': cartList,
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
+    }
+  }
+
+  /// UPDATE CART QTY (POST)
+  Future<Map<String, dynamic>> updateCartQty({
+    required int userId,
+    required int slabId,
+    required int qty,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/UpdateCartQty');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'user_id': userId.toString(),
+          'slab_id': slabId.toString(),
+          'qty': qty.toString(),
+        },
+      );
+
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      final cleanJson = _cleanResponse(response.body);
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess = _isSuccess(jsonData);
+
+      return {
+        'success': isSuccess,
+        'message':
+            jsonData['Message'] ??
+            (isSuccess ? 'Cart updated' : 'Update failed'),
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
+    }
+  }
+
+  /// REMOVE CART ITEM (POST)
+  Future<Map<String, dynamic>> removeCartItem({
+    required int userId,
+    required int slabId,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/RemoveFromCart');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'user_id': userId.toString(), 'slab_id': slabId.toString()},
+      );
+
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'Server error: ${response.statusCode}',
+        };
+      }
+
+      final cleanJson = _cleanResponse(response.body);
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess = _isSuccess(jsonData);
+
+      return {
+        'success': isSuccess,
+        'message':
+            jsonData['Message'] ??
+            (isSuccess ? 'Item removed' : 'Remove failed'),
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Something went wrong'};
+    }
+  }
 
   /// PLACE ORDER FROM CART (POST)
   Future<Map<String, dynamic>> placeOrderFromCart({
@@ -354,7 +496,7 @@ class ApiService {
       // Remove XML wrapper
       final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-        //  print("\nplace order from cart $jsonData \n");
+      //  print("\nplace order from cart $jsonData \n");
       final bool isSuccess =
           jsonData['Status']?.toString().toLowerCase() == 'success';
 
@@ -643,47 +785,47 @@ class ApiService {
 
   /// SAVE BANK DETAILS (POST)
   Future<Map<String, dynamic>> saveBankDetails({
-  required int userId,
-  required String bankName,
-  required String accountHolderName,
-  required String accountNumber,
-  required String ifscCode,
-}) async {
-  final Uri url = Uri.parse('$_baseUrl/SaveBankDetails');
+    required int userId,
+    required String bankName,
+    required String accountHolderName,
+    required String accountNumber,
+    required String ifscCode,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/SaveBankDetails');
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'user_id': userId.toString(),
-        'bank_name': bankName.trim(),
-        'account_holder_name': accountHolderName.trim(),
-        'account_number': accountNumber.trim(),
-        'ifsc_code': ifscCode.trim(),
-      },
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'user_id': userId.toString(),
+          'bank_name': bankName.trim(),
+          'account_holder_name': accountHolderName.trim(),
+          'account_number': accountNumber.trim(),
+          'ifsc_code': ifscCode.trim(),
+        },
+      );
 
-    if (response.statusCode != 200) {
-      return {'success': false, 'message': 'Server error'};
+      if (response.statusCode != 200) {
+        return {'success': false, 'message': 'Server error'};
+      }
+
+      final cleanJson = _cleanResponse(response.body);
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+
+      final bool isSuccess = _isSuccess(jsonData);
+
+      return {
+        'success': isSuccess,
+        'message':
+            jsonData['Message'] ??
+            (isSuccess ? 'Bank details saved' : 'Failed to save bank details'),
+        'data': jsonData,
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Network error'};
     }
-
-    final cleanJson = _cleanResponse(response.body);
-    final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-    final bool isSuccess = _isSuccess(jsonData);
-
-    return {
-      'success': isSuccess,
-      'message':
-          jsonData['Message'] ??
-          (isSuccess ? 'Bank details saved' : 'Failed to save bank details'),
-      'data': jsonData,
-    };
-  } catch (e) {
-    return {'success': false, 'message': 'Network error'};
   }
-}
 
   /// FORGOT PASSWORD (POST)
   Future<Map<String, dynamic>> forgotPassword({

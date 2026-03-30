@@ -1,7 +1,8 @@
+import 'package:copper_hub/models/cart_item_model.dart';
+import 'package:copper_hub/services/api_service.dart';
+import 'package:copper_hub/services/auth_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:copper_hub/routes/app_routes.dart';
-import 'package:copper_hub/services/cart_database_service.dart';
-import 'package:copper_hub/models/cart_item_model.dart';
 import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 
@@ -13,18 +14,45 @@ class MyCartScreen extends StatefulWidget {
 }
 
 class _MyCartScreenState extends State<MyCartScreen> {
-  final CartDatabaseService _db = CartDatabaseService.instance;
+  final ApiService _api = ApiService();
 
   List<CartItemModel> _cartItems = [];
   bool _isLoading = true;
+  int? _userId;
 
-  // ---------------- DB LOAD ----------------
+  // ---------------- LOAD CART ----------------
   Future<void> _loadCart() async {
-    final items = await _db.getCartItems();
-    setState(() {
-      _cartItems = items;
-      _isLoading = false;
-    });
+    setState(() => _isLoading = true);
+
+    _userId ??= await AuthStorage.getUserId();
+
+    if (_userId == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final response = await _api.getCart(userId: _userId!);
+    print("GET CART RESPONSE: $response");
+
+    if (response['success']) {
+      final List list = response['data'];
+
+      print("RAW CART LIST: $list");
+      setState(() {
+        _cartItems = list.map((e) {
+          print("ITEM JSON: $e");
+          return CartItemModel.fromJson(e);
+        }).toList();
+
+        print("PARSED ITEMS: $_cartItems"); // optional
+        _isLoading = false;
+      });
+    } else {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(response['message'])));
+    }
   }
 
   @override
@@ -57,49 +85,111 @@ class _MyCartScreenState extends State<MyCartScreen> {
 
   // ---------------- ACTIONS ----------------
   Future<void> _increaseQty(CartItemModel item) async {
-    final limits = getQtyLimitsFromSlab(item.slab);
-    final maxQty = limits.max;
+    final limits = getQtyLimitsFromSlab(item.slabName);
+    final maxQty = limits.max == 0 ? null : limits.max;
 
-    if (maxQty != null && item.qty >= maxQty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Maximum limit is $maxQty KG for this slab")),
-      );
+    if (maxQty != null && item.quantity >= maxQty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Maximum limit is $maxQty KG")));
       return;
     }
 
-    final newQty = item.qty + 1;
+    final oldQty = item.quantity;
+    final newQty = oldQty + 1;
 
-    await _db.updateQty(item.id!, newQty);
+    final index = _cartItems.indexOf(item);
 
-    _loadCart();
+    // instant UI update
+    setState(() {
+      _cartItems[index] = item.copyWith(quantity: newQty);
+    });
+
+    // silent API call
+    final res = await _api.updateCartQty(
+      userId: _userId!,
+      slabId: item.slabId,
+      qty: newQty.toInt(),
+    );
+
+    if (!res['success']) {
+      setState(() {
+        _cartItems[index] = item.copyWith(quantity: oldQty);
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res['message'])));
+    }
   }
 
   Future<void> _decreaseQty(CartItemModel item) async {
-    final limits = getQtyLimitsFromSlab(item.slab);
+    final limits = getQtyLimitsFromSlab(item.slabName);
     final minQty = limits.min;
 
-    if (item.qty <= minQty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Minimum limit is $minQty KG for this slab")),
-      );
+    if (item.quantity <= minQty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Minimum limit is $minQty KG")));
       return;
     }
 
-    final newQty = item.qty - 1;
+    final oldQty = item.quantity;
+    final newQty = oldQty - 1;
 
-    await _db.updateQty(item.id!, newQty);
+    final index = _cartItems.indexOf(item);
 
-    _loadCart();
+    setState(() {
+      _cartItems[index] = item.copyWith(quantity: newQty);
+    });
+
+    final res = await _api.updateCartQty(
+      userId: _userId!,
+      slabId: item.slabId,
+      qty: newQty.toInt(),
+    );
+
+    if (!res['success']) {
+      setState(() {
+        _cartItems[index] = item.copyWith(quantity: oldQty);
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res['message'])));
+    }
   }
 
-  Future<void> _removeItem(int id) async {
-    await _db.deleteItem(id);
-    _loadCart();
+  Future<void> _removeItem(CartItemModel item) async {
+    final index = _cartItems.indexOf(item);
+    final removedItem = _cartItems[index];
+
+    // Instant UI update: remove item locally
+    setState(() {
+      _cartItems.removeAt(index);
+    });
+
+    final res = await _api.removeCartItem(
+      userId: _userId!,
+      slabId: item.slabId,
+    );
+    //  rollback
+    if (!res['success']) {
+      setState(() {
+        _cartItems.insert(index, removedItem);
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res['message'])));
+    }
   }
 
   // ---------------- TOTALS ----------------
-  double get totalQty => _cartItems.fold(0.0, (sum, e) => sum + e.qty);
-  double get grandTotal => _cartItems.fold(0.0, (sum, e) => sum + e.amount);
+  double get totalQty => _cartItems.fold(0.0, (sum, e) => sum + e.quantity);
+
+  double get grandTotal =>
+      _cartItems.fold(0.0, (sum, e) => sum + e.totalAmount);
 
   // ---------------- UI ----------------
   @override
@@ -135,7 +225,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Slab: ${item.slab}',
+                                  'Slab: ${item.slabName}',
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -147,7 +237,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: IconButton(
-                                    onPressed: () => _removeItem(item.id!),
+                                    onPressed: () => _removeItem(item),
                                     icon: const Icon(
                                       Icons.close,
                                       color: AppColors.white,
@@ -163,14 +253,14 @@ class _MyCartScreenState extends State<MyCartScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Price: ₹ ${item.buyPrice.toStringAsFixed(2)} / KG',
+                                  'Price: ₹ ${item.pricePerKg.toStringAsFixed(2)} / KG',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 Text(
-                                  '₹ ${item.amount.toStringAsFixed(2)}',
+                                  '₹ ${item.totalAmount.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -196,9 +286,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  item.qty % 1 == 0
-                                      ? item.qty.toInt().toString()
-                                      : item.qty.toString(),
+                                  item.quantity.toInt().toString(),
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -227,7 +315,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                   child: Column(
                     children: [
                       Text(
-                        'Total Quantity: ${totalQty % 1 == 0 ? totalQty.toInt() : totalQty} KG',
+                        'Total Quantity: $totalQty KG',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,

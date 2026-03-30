@@ -1,4 +1,3 @@
-import 'package:copper_hub/services/cart_database_service.dart';
 import 'package:copper_hub/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:copper_hub/routes/app_routes.dart';
@@ -520,7 +519,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (result['success'] == true) {
         // clear login storage
         await AuthStorage.logout();
-        await CartDatabaseService.instance.clearCart();
+        // await CartDatabaseService.instance.clearCart();
 
         if (!mounted) return;
         _showMessage(result['message'] ?? "Account deleted successfully");

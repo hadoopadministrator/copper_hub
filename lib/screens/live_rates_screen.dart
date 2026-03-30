@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/services/api_service.dart';
 import 'package:copper_hub/services/auth_storage.dart';
-import 'package:copper_hub/services/cart_database_service.dart';
-import 'package:copper_hub/models/cart_item_model.dart';
 import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
@@ -60,6 +57,16 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
       // debugPrint("Timer triggered at: ${DateTime.now()}");
       _fetchLiveRates();
     });
+  }
+
+  // ================= NEW HELPER =================
+  double getUnitWeight(String slabName) {
+    final clean = slabName.toUpperCase();
+
+    if (clean.startsWith('0.25')) return 0.25;
+    if (clean.startsWith('0.5')) return 0.5;
+
+    return 1.0; // 1KG slabs
   }
 
   // ---------------- Quantity helpers ----------------
@@ -153,11 +160,14 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                   itemCount: _copperRate!['Slabs'].length,
                   itemBuilder: (context, index) {
                     final slab = _copperRate!['Slabs'][index];
+
                     final slabName = slab['SlabName'];
+
                     // Get min/max using helper
                     final limits = getQtyLimitsFromSlab(slabName);
                     final minQty = limits.min;
                     final maxQty = limits.max;
+
                     _qtyControllers.putIfAbsent(index, () {
                       _quantities[index] ??= minQty;
                       return TextEditingController(
@@ -399,93 +409,55 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
     }
 
     try {
-      final limits = getQtyLimitsFromSlab(slabName);
-      final minQty = limits.min;
-      final maxQty = limits.max;
+      final unitWeight = getUnitWeight(slabName);
+      final double totalKg = unitQty * unitWeight;
 
-      final double totalKg = unitQty.toDouble();
+      // ================= API DATA (DIRECT) =================
+      final double minWeight = double.parse(slab['MinWeight'].toString());
+
+      final double maxWeight = double.parse(slab['MaxWeight'].toString());
+
       final double buyPrice = double.parse(slab['BuyPrice'].toString());
-      final double sellPrice = double.parse(slab['SellPrice'].toString());
 
       final int slabId = slab['Id'];
 
       final userId = await AuthStorage.getUserId();
+      if (userId == null) return false;
 
-      if (userId == null) {
-        debugPrint('❌ USER ID IS NULL - API WILL NOT BE CALLED');
-        return false;
-      }
-
-      // ================= DEBUG REQUEST =================
-      debugPrint('======== ADD TO CART API REQUEST ========');
+      // ================= DEBUG =================
+      debugPrint('======== ADD TO CART FINAL ========');
       debugPrint('User ID        : $userId');
       debugPrint('Slab ID        : $slabId');
       debugPrint('Slab Name      : $slabName');
-      debugPrint('Price Per Kg   : $buyPrice');
-      debugPrint('Sell Price     : $sellPrice');
       debugPrint('Unit Qty       : $unitQty');
+      debugPrint('Unit Weight    : $unitWeight');
       debugPrint('Total KG       : $totalKg');
-      debugPrint('Min Weight     : $minQty');
-      debugPrint('Max Weight     : ${maxQty ?? unitQty}');
-      debugPrint('========================================');
-
-       // ================= TYPE CHECK =================
-    debugPrint('-------- TYPE CHECK --------');
-    debugPrint('userId type      : ${userId.runtimeType}');
-    debugPrint('slabName type    : ${slabName.runtimeType}');
-    debugPrint('pricePerKg type  : ${buyPrice.runtimeType}');
-    debugPrint('qty type         : ${unitQty.runtimeType}');
-    debugPrint('minWeight type   : ${minQty.runtimeType}');
-    debugPrint('maxWeight type   : ${(maxQty ?? unitQty).runtimeType}');
-    debugPrint('----------------------------');
-
-    // ================= BODY CHECK =================
-    final body = {
-      'user_id': userId,
-      'slabName': slabName,
-      'pricePerKg': buyPrice,
-      'qty': unitQty,
-      'minWeight': minQty,
-      'maxWeight': maxQty ?? unitQty,
-    };
-
-    debugPrint('RAW BODY MAP: $body');
+      debugPrint('Buy Price      : $buyPrice');
+      debugPrint('MinWeight(API) : $minWeight');
+      debugPrint('MaxWeight(API) : $maxWeight'); // 0 = unlimited
+      debugPrint('===================================');
 
       /// ADD TO CART API
       final apiResult = await apiService.addToCart(
         userId: userId,
+        slabId: slabId,
         slabName: slabName,
         pricePerKg: buyPrice,
-        qty: unitQty,
-        minWeight: minQty,
-        maxWeight: maxQty ?? unitQty,
+        qty: totalKg,
+        minWeight: minWeight,
+        maxWeight: maxWeight,
       );
 
-      // ================= DEBUG RESPONSE =================
-      debugPrint('======== ADD TO CART API RESPONSE ========');
+      // ================= RESPONSE =================
+      debugPrint('======== RESPONSE ========');
       debugPrint(apiResult.toString());
-      debugPrint('==========================================');
+      debugPrint('==========================');
 
       if (apiResult['success'] != true) {
         debugPrint('❌ API FAILED');
         return false;
       }
-
-      // ================= LOCAL DB SAVE =================
-      final cartItem = CartItemModel(
-        slabId: slabId,
-        slab: slabName,
-        buyPrice: buyPrice,
-        sellPrice: sellPrice,
-        qty: totalKg,
-        amount: buyPrice * totalKg,
-        createdAt: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
-      );
-
-      await CartDatabaseService.instance.insertOrUpdate(cartItem);
-
-      debugPrint('✅ ITEM SAVED IN LOCAL DB');
-
+      debugPrint('✅ ADDED TO CART SUCCESS');
       return true;
     } catch (e) {
       debugPrint('❌ ADD TO CART ERROR: $e');
