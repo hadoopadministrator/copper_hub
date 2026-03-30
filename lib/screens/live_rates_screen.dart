@@ -394,6 +394,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
     final int unitQty = _quantities[index] ?? 0;
 
     if (unitQty <= 0) {
+      debugPrint('❌ Quantity is 0');
       return false;
     }
 
@@ -407,10 +408,48 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
       final double sellPrice = double.parse(slab['SellPrice'].toString());
 
       final int slabId = slab['Id'];
+
       final userId = await AuthStorage.getUserId();
+
       if (userId == null) {
+        debugPrint('❌ USER ID IS NULL - API WILL NOT BE CALLED');
         return false;
       }
+
+      // ================= DEBUG REQUEST =================
+      debugPrint('======== ADD TO CART API REQUEST ========');
+      debugPrint('User ID        : $userId');
+      debugPrint('Slab ID        : $slabId');
+      debugPrint('Slab Name      : $slabName');
+      debugPrint('Price Per Kg   : $buyPrice');
+      debugPrint('Sell Price     : $sellPrice');
+      debugPrint('Unit Qty       : $unitQty');
+      debugPrint('Total KG       : $totalKg');
+      debugPrint('Min Weight     : $minQty');
+      debugPrint('Max Weight     : ${maxQty ?? unitQty}');
+      debugPrint('========================================');
+
+       // ================= TYPE CHECK =================
+    debugPrint('-------- TYPE CHECK --------');
+    debugPrint('userId type      : ${userId.runtimeType}');
+    debugPrint('slabName type    : ${slabName.runtimeType}');
+    debugPrint('pricePerKg type  : ${buyPrice.runtimeType}');
+    debugPrint('qty type         : ${unitQty.runtimeType}');
+    debugPrint('minWeight type   : ${minQty.runtimeType}');
+    debugPrint('maxWeight type   : ${(maxQty ?? unitQty).runtimeType}');
+    debugPrint('----------------------------');
+
+    // ================= BODY CHECK =================
+    final body = {
+      'user_id': userId,
+      'slabName': slabName,
+      'pricePerKg': buyPrice,
+      'qty': unitQty,
+      'minWeight': minQty,
+      'maxWeight': maxQty ?? unitQty,
+    };
+
+    debugPrint('RAW BODY MAP: $body');
 
       /// ADD TO CART API
       final apiResult = await apiService.addToCart(
@@ -421,11 +460,18 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
         minWeight: minQty,
         maxWeight: maxQty ?? unitQty,
       );
-      // debugPrint("ADD TO CART API RESULT: $slab");
+
+      // ================= DEBUG RESPONSE =================
+      debugPrint('======== ADD TO CART API RESPONSE ========');
+      debugPrint(apiResult.toString());
+      debugPrint('==========================================');
+
       if (apiResult['success'] != true) {
+        debugPrint('❌ API FAILED');
         return false;
       }
 
+      // ================= LOCAL DB SAVE =================
       final cartItem = CartItemModel(
         slabId: slabId,
         slab: slabName,
@@ -435,27 +481,14 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
         amount: buyPrice * totalKg,
         createdAt: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),
       );
-      // DEBUG PRINT START
-      // debugPrint('------------ ADD TO CART DEBUG ------------');
-      // debugPrint('Slab ID: $slabId');
-      // debugPrint('Slab Name: $slabName');
-      // debugPrint('Unit Qty: $unitQty');
-      // debugPrint('Total KG: $totalKg');
-      // debugPrint('Buy Price: $buyPrice');
-      // debugPrint('Final Amount: ${buyPrice * totalKg}');
-      // debugPrint('Cart Map: ${cartItem.toMap()}');
-      // debugPrint('-------------------------------------------');
-      // DEBUG PRINT END
+
       await CartDatabaseService.instance.insertOrUpdate(cartItem);
-      // final items = await CartDatabaseService.instance.getCartItems();
-      // debugPrint('---- FULL CART AFTER INSERT ----');
-      // for (var item in items) {
-      //   debugPrint(item.toMap().toString());
-      // }
-      // debugPrint('--------------------------------');
+
+      debugPrint('✅ ITEM SAVED IN LOCAL DB');
+
       return true;
     } catch (e) {
-      // debugPrint('Add to cart error: $e');
+      debugPrint('❌ ADD TO CART ERROR: $e');
       return false;
     }
   }
