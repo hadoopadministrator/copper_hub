@@ -293,7 +293,7 @@ class ApiService {
         'maxWeight': maxWeight.toString(),
       };
 
-      print("FINAL API BODY: $body");
+      // print("FINAL API BODY: $body");
 
       final response = await http.post(
         url,
@@ -310,7 +310,7 @@ class ApiService {
 
       final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
+        // print("DECODED JSON: $jsonData");
       final bool isSuccess =
           jsonData['Status']?.toString().toLowerCase() == 'success';
 
@@ -322,7 +322,7 @@ class ApiService {
         'data': jsonData,
       };
     } catch (e) {
-      print("ADD TO CART ERROR: $e");
+      // print("ADD TO CART ERROR: $e");
       return {'success': false, 'message': 'Something went wrong'};
     }
   }
@@ -334,12 +334,12 @@ class ApiService {
     ).replace(queryParameters: {'user_id': userId.toString()});
 
     try {
-      print("GET CART URL: $url");
+      // print("GET CART URL: $url");
 
       final response = await http.get(url);
 
-      print("STATUS CODE: ${response.statusCode}");
-      print("RAW RESPONSE: ${response.body}");
+      // print("STATUS CODE: ${response.statusCode}");
+      // print("RAW RESPONSE: ${response.body}");
 
       if (response.statusCode != 200) {
         return {
@@ -351,7 +351,7 @@ class ApiService {
       // Remove XML wrapper
       final cleanJson = _cleanResponse(response.body);
 
-      print("CLEAN JSON: $cleanJson");
+      // print("CLEAN JSON: $cleanJson");
 
       if (cleanJson.isEmpty) {
         return {'success': false, 'message': 'Empty response'};
@@ -359,7 +359,7 @@ class ApiService {
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
 
-      print("DECODED JSON: $jsonData");
+      // print("DECODED JSON: $jsonData");
 
       final bool isSuccess = _isSuccess(jsonData);
 
@@ -372,7 +372,7 @@ class ApiService {
 
       final List<dynamic> cartList = jsonData['Data'] ?? [];
 
-      print("CART LIST: $cartList");
+      // print("CART LIST: $cartList");
 
       return {
         'success': true,

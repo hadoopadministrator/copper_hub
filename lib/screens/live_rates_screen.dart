@@ -7,6 +7,7 @@ import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:copper_hub/widgets/drawer_widget.dart';
+import 'package:intl/intl.dart';
 
 class LiveRatesScreen extends StatefulWidget {
   const LiveRatesScreen({super.key});
@@ -24,7 +25,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
 
   final ApiService apiService = ApiService();
   Timer? _fetchTimer;
-  // DateTime? _lastUpdated;
+  DateTime? _lastUpdated;
 
   // ---------------- API ----------------
 
@@ -40,7 +41,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
       setState(() {
         _copperRate = result['data'];
         _isLoading = false;
-        // _lastUpdated = DateTime.now();
+        _lastUpdated = DateTime.now();
       });
     } else {
       setState(() => _isLoading = false);
@@ -53,7 +54,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
 
   void _startAutoFetch() {
     _fetchTimer?.cancel();
-    _fetchTimer = Timer.periodic(const Duration(minutes: 10), (_) {
+    _fetchTimer = Timer.periodic(const Duration(minutes: 2), (_) {
       // debugPrint("Timer triggered at: ${DateTime.now()}");
       _fetchLiveRates();
     });
@@ -191,54 +192,124 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'COPPER PRICE',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.white,
-                            ),
-                          ),
-                          // Text(
-                          //   "Last Updated: ${_lastUpdated != null ? DateFormat('HH:mm:ss').format(_lastUpdated!) : '--'}",
-                          //   style: TextStyle(color: AppColors.white),
-                          // ),
+                          /// HEADER
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  'Buy: ₹ ${slab['BuyPrice']}',
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.white,
-                                  ),
+                              const Text(
+                                'COPPER PRICE',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.white,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  'Sell: ₹ ${slab['SellPrice']}',
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  'Qty: $slabName',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.white,
-                                  ),
+                              Text(
+                                "Last Updated: ${_lastUpdated != null ? DateFormat('HH:mm:a').format(_lastUpdated!) : '--'}",
+                                style: TextStyle(
+                                  color: AppColors.white.withValues(alpha: 0.7),
+                                  fontSize: 16,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+
+                          /// PRICE ROW
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Buy",
+                                      style: TextStyle(
+                                        color: AppColors.white.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '₹ ${slab['BuyPrice']}',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Sell",
+                                      style: TextStyle(
+                                        color: AppColors.white.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '₹ ${slab['SellPrice']}',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Qty",
+                                      style: TextStyle(
+                                        color: AppColors.white.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '$slabName',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Expanded(
+                              //   child: Text(
+                              //     'Qty: $slabName',
+                              //     style: TextStyle(
+                              //       fontSize: 13,
+                              //       color: AppColors.white,
+                              //     ),
+                              //   ),
+                              // ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          /// ACTION ROW
                           Row(
                             children: [
                               Expanded(
@@ -252,7 +323,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                                     final messenger = ScaffoldMessenger.of(
                                       context,
                                     );
-                                    bool added = await _addToCart(
+                                    final result = await _addToCart(
                                       index: index,
                                       slab: slab,
                                       slabName: slabName,
@@ -260,14 +331,10 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                                     if (!mounted) return;
                                     messenger.showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          added
-                                              ? 'Added to cart'
-                                              : 'Please select quantity',
-                                        ),
+                                        content: Text(result['message']),
                                       ),
                                     );
-                                    if (added) {
+                                    if (result['success'] == true) {
                                       navigator.pushNamed(AppRoutes.cart);
                                     }
                                   },
@@ -340,6 +407,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                                 ),
                               ),
                               const SizedBox(width: 10),
+
                               Expanded(
                                 child: TextField(
                                   controller: _qtyControllers[index],
@@ -396,7 +464,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
     );
   }
 
-  Future<bool> _addToCart({
+  Future<Map<String, dynamic>> _addToCart({
     required int index,
     required Map slab,
     required String slabName,
@@ -405,7 +473,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
 
     if (unitQty <= 0) {
       debugPrint('❌ Quantity is 0');
-      return false;
+      return {'success': false, 'message': 'Please select quantity'};
     }
 
     try {
@@ -422,8 +490,9 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
       final int slabId = slab['Id'];
 
       final userId = await AuthStorage.getUserId();
-      if (userId == null) return false;
-
+      if (userId == null) {
+        return {'success': false, 'message': 'User not logged in'};
+      }
       // ================= DEBUG =================
       debugPrint('======== ADD TO CART FINAL ========');
       debugPrint('User ID        : $userId');
@@ -443,7 +512,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
         slabId: slabId,
         slabName: slabName,
         pricePerKg: buyPrice,
-        qty: totalKg,
+        qty: unitQty.toDouble(),
         minWeight: minWeight,
         maxWeight: maxWeight,
       );
@@ -455,13 +524,17 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
 
       if (apiResult['success'] != true) {
         debugPrint('❌ API FAILED');
-        return false;
+        return {'success': false, 'message': 'Something went wrong'};
       }
+
       debugPrint('✅ ADDED TO CART SUCCESS');
-      return true;
+      return {
+        'success': true,
+        'message': apiResult['message'] ?? 'Added to cart',
+      };
     } catch (e) {
       debugPrint('❌ ADD TO CART ERROR: $e');
-      return false;
+      return {'success': false, 'message': 'Something went wrong'};
     }
   }
 }

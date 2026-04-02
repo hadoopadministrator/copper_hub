@@ -56,9 +56,22 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
   }
 
   void _updateForm() {
-    setState(() {
-      _isFormValid = _formKey.currentState?.validate() ?? false;
-    });
+    final isValid =
+        Validators.accountHolder(accountHolderController.text.trim()) == null &&
+        Validators.accountNumber(accountNumberController.text.trim()) == null &&
+        Validators.confirmAccountNumber(
+              confirmAccountNumberController.text.trim(),
+              accountNumberController.text.trim(),
+            ) ==
+            null &&
+        Validators.ifsc(ifscController.text.trim()) == null &&
+        Validators.bankName(bankNameController.text.trim()) == null;
+
+    if (isValid != _isFormValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
   }
 
   String? _required(String? value) {
@@ -121,6 +134,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             children: [
               TextFormField(

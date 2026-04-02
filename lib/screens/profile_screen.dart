@@ -62,15 +62,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _updateForm() {
-    if (!isEditing) return;
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (isValid != _isFormValid) {
-      setState(() {
-        _isFormValid = isValid;
-      });
-    }
+ void _updateForm() {
+  if (!isEditing) return;
+
+  final isValid =
+      Validators.fullName(fullNameController.text.trim()) == null &&
+      Validators.email(emailController.text.trim()) == null &&
+      Validators.mobile(mobileController.text.trim()) == null &&
+      Validators.address(addressController.text.trim()) == null &&
+      Validators.pincode(pincodeController.text.trim()) == null;
+
+  if (isValid != _isFormValid) {
+    setState(() {
+      _isFormValid = isValid;
+    });
   }
+}
+
 
   @override
   void dispose() {
@@ -249,6 +257,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               children: [
                 // Header
