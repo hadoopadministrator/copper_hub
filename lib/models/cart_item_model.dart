@@ -4,8 +4,8 @@ class CartItemModel {
   final int slabId;
 
   final String slabName;
-  final int minWeight;
-  final int maxWeight;
+  final double minWeight;
+  final double maxWeight;
 
   final double pricePerKg;
   final double quantity;
@@ -26,7 +26,6 @@ class CartItemModel {
     required this.addedOn,
   });
 
-  /// FROM API
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
     return CartItemModel(
       cartId: json['CartID'] ?? 0,
@@ -34,28 +33,18 @@ class CartItemModel {
       slabId: json['SlabId'] ?? 0,
 
       slabName: json['SlabName'] ?? '',
-      minWeight: json['MinWeight'] ?? 0,
-      maxWeight: json['MaxWeight'] ?? 0,
+      minWeight: (json['MinWeight'] as num?)?.toDouble() ?? 0.0,
+      maxWeight: (json['MaxWeight'] as num?)?.toDouble() ?? 0.0,
 
-      pricePerKg:
-          (json['PricePerKg'] as num?)?.toDouble() ?? 0.0,
-
-      quantity:
-          (json['Quantity'] as num?)?.toDouble() ?? 0.0,
-
-      totalAmount:
-          (json['TotalAmount'] as num?)?.toDouble() ?? 0.0,
+      pricePerKg: (json['PricePerKg'] as num?)?.toDouble() ?? 0.0,
+      quantity: (json['Quantity'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: (json['TotalAmount'] as num?)?.toDouble() ?? 0.0,
 
       addedOn: json['AddedOn'] ?? '',
     );
   }
 
-  /// OPTIONAL (update locally if needed)
-  CartItemModel copyWith({
-    double? quantity,
-  }) {
-    final newQty = quantity ?? this.quantity;
-
+  CartItemModel copyWith({double? quantity, double? totalAmount}) {
     return CartItemModel(
       cartId: cartId,
       userId: userId,
@@ -64,8 +53,8 @@ class CartItemModel {
       minWeight: minWeight,
       maxWeight: maxWeight,
       pricePerKg: pricePerKg,
-      quantity: newQty,
-      totalAmount: pricePerKg * newQty,
+      quantity: quantity ?? this.quantity,
+      totalAmount: totalAmount ?? this.totalAmount,
       addedOn: addedOn,
     );
   }

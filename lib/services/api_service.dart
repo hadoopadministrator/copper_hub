@@ -310,7 +310,7 @@ class ApiService {
 
       final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-        // print("DECODED JSON: $jsonData");
+      // print("DECODED JSON: $jsonData");
       final bool isSuccess =
           jsonData['Status']?.toString().toLowerCase() == 'success';
 
@@ -334,12 +334,8 @@ class ApiService {
     ).replace(queryParameters: {'user_id': userId.toString()});
 
     try {
-      // print("GET CART URL: $url");
 
       final response = await http.get(url);
-
-      // print("STATUS CODE: ${response.statusCode}");
-      // print("RAW RESPONSE: ${response.body}");
 
       if (response.statusCode != 200) {
         return {
@@ -348,10 +344,7 @@ class ApiService {
         };
       }
 
-      // Remove XML wrapper
       final cleanJson = _cleanResponse(response.body);
-
-      // print("CLEAN JSON: $cleanJson");
 
       if (cleanJson.isEmpty) {
         return {'success': false, 'message': 'Empty response'};
@@ -359,7 +352,7 @@ class ApiService {
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
 
-      // print("DECODED JSON: $jsonData");
+      print("\n getCart: $jsonData \n");
 
       final bool isSuccess = _isSuccess(jsonData);
 
@@ -371,15 +364,18 @@ class ApiService {
       }
 
       final List<dynamic> cartList = jsonData['Data'] ?? [];
-
-      // print("CART LIST: $cartList");
+      final double totalWeight = (jsonData['TotalWeight'] ?? 0).toDouble();
+      final double grandTotal = (jsonData['GrandTotal'] ?? 0).toDouble();
 
       return {
         'success': true,
         'message': jsonData['Message'],
         'data': cartList,
+        'totalWeight': totalWeight,
+        'grandTotal': grandTotal,
       };
     } catch (e) {
+      // print("GET CART ERROR: $e");
       return {'success': false, 'message': 'Something went wrong'};
     }
   }
@@ -412,6 +408,7 @@ class ApiService {
 
       final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+      print("\n updateCartQty: $jsonData \n");
 
       final bool isSuccess = _isSuccess(jsonData);
 
@@ -449,7 +446,7 @@ class ApiService {
 
       final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
+      print("\n removeCartItem: $jsonData \n");
       final bool isSuccess = _isSuccess(jsonData);
 
       return {

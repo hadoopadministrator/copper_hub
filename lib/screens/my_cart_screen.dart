@@ -22,7 +22,11 @@ class _MyCartScreenState extends State<MyCartScreen> {
   bool _isLoading = true;
   int? _userId;
 
+  double _totalWeight = 0;
+  double _grandTotal = 0;
+
   Timer? _cartDebounce;
+  Timer? _refreshDebounce;
 
   // ---------------- SAFE SNACKBAR ----------------
   void _showSnack(String message) {
@@ -34,13 +38,12 @@ class _MyCartScreenState extends State<MyCartScreen> {
   }
 
   // ---------------- LOAD CART ----------------
-  Future<void> _loadCart() async {
-    setState(() => _isLoading = true);
-
+  Future<void> _loadCart({bool showLoader = true}) async {
+    if (showLoader) setState(() => _isLoading = true);
     _userId ??= await AuthStorage.getUserId();
 
     if (_userId == null) {
-      setState(() => _isLoading = false);
+      if (showLoader) setState(() => _isLoading = false);
       return;
     }
 
@@ -51,20 +54,26 @@ class _MyCartScreenState extends State<MyCartScreen> {
     if (response['success']) {
       final List list = response['data'];
 
-      // print("RAW CART LIST: $list");
       setState(() {
         _cartItems = list.map((e) {
-          // print("ITEM JSON: $e");
           return CartItemModel.fromJson(e);
         }).toList();
 
-        // print("PARSED ITEMS: $_cartItems"); // optional
+        _totalWeight = (response['totalWeight'] ?? 0).toDouble();
+        _grandTotal = (response['grandTotal'] ?? 0).toDouble();
         _isLoading = false;
       });
     } else {
-      setState(() => _isLoading = false);
+      if (showLoader) setState(() => _isLoading = false);
       _showSnack(response['message']);
     }
+  }
+
+  void _refreshCart() {
+    _refreshDebounce?.cancel();
+    _refreshDebounce = Timer(const Duration(milliseconds: 300), () {
+      _loadCart(showLoader: false);
+    });
   }
 
   @override
@@ -97,12 +106,9 @@ class _MyCartScreenState extends State<MyCartScreen> {
 
   // ---------------- DEBOUNCE API ----------------
   void _debounceCartUpdate({required int slabId, required int qty}) {
-    // print("⏳ Debounce START for slabId=$slabId qty=$qty");
     _cartDebounce?.cancel();
 
     _cartDebounce = Timer(const Duration(milliseconds: 500), () async {
-      // print("🚀 API CALL: updateCartQty (slabId=$slabId, qty=$qty)");
-
       final res = await _api.updateCartQty(
         userId: _userId!,
         slabId: slabId,
@@ -113,20 +119,16 @@ class _MyCartScreenState extends State<MyCartScreen> {
       if (!res['success']) {
         _showSnack(res['message']);
       } else {
-        // print("✅ QTY UPDATED SUCCESS");
+        _refreshCart();
       }
     });
   }
 
   void _debounceRemove(int slabId, CartItemModel removedItem, int index) {
-    // print("⏳ Debounce REMOVE for slabId=$slabId");
     _cartDebounce?.cancel();
 
     _cartDebounce = Timer(const Duration(milliseconds: 400), () async {
-      // print("🚀 API CALL: removeCartItem (slabId=$slabId)");
-
       final res = await _api.removeCartItem(userId: _userId!, slabId: slabId);
-      // print("📥 RESPONSE removeCartItem: $res");
       if (!mounted) return;
       if (!res['success']) {
         setState(() {
@@ -135,14 +137,13 @@ class _MyCartScreenState extends State<MyCartScreen> {
 
         _showSnack(res['message']);
       } else {
-        // print("✅ ITEM REMOVED SUCCESS");
+        _refreshCart();
       }
     });
   }
 
   // ---------------- ACTIONS ----------------
   Future<void> _increaseQty(CartItemModel item) async {
-    // print("➕ INCREASE tapped (slabId=${item.slabId})");
     final limits = getQtyLimitsFromSlab(item.slabName);
     final maxQty = limits.max == 0 ? null : limits.max;
 
@@ -158,6 +159,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
     // instant UI update
     setState(() {
       _cartItems[index] = item.copyWith(quantity: newQty);
+      _updateSummary();
     });
 
     // silent API call
@@ -165,8 +167,6 @@ class _MyCartScreenState extends State<MyCartScreen> {
   }
 
   Future<void> _decreaseQty(CartItemModel item) async {
-    //  print("➖ DECREASE tapped (slabId=${item.slabId})");
-
     final limits = getQtyLimitsFromSlab(item.slabName);
     final minQty = limits.min;
 
@@ -181,9 +181,44 @@ class _MyCartScreenState extends State<MyCartScreen> {
 
     setState(() {
       _cartItems[index] = item.copyWith(quantity: newQty);
+      _updateSummary();
     });
 
     _debounceCartUpdate(slabId: item.slabId, qty: newQty.toInt());
+  }
+
+  void _updateSummary() {
+    double totalWeight = 0;
+    double grandTotal = 0;
+
+    for (var item in _cartItems) {
+      // Parse slab weight
+      final clean = item.slabName.replaceAll('KG', '').trim();
+
+      double slabWeight = 1; // default
+
+      if (clean.startsWith('0.25')) {
+        slabWeight = 0.25;
+      } else if (clean.startsWith('0.5')) {
+        slabWeight = 0.5;
+      } else if (clean.contains('-')) {
+        // range slab, take min value as unit weight
+        slabWeight = double.tryParse(clean.split('-')[0].trim()) ?? 1;
+      } else if (clean.contains('+')) {
+        // plus slab, take value as weight
+        slabWeight = double.tryParse(clean.replaceAll('+', '').trim()) ?? 1;
+      } else {
+        slabWeight = double.tryParse(clean) ?? 1;
+      }
+
+      totalWeight += item.quantity * slabWeight;
+      grandTotal += item.totalAmount;
+    }
+
+    setState(() {
+      _totalWeight = totalWeight;
+      _grandTotal = grandTotal;
+    });
   }
 
   Future<void> _removeItem(CartItemModel item) async {
@@ -199,12 +234,6 @@ class _MyCartScreenState extends State<MyCartScreen> {
 
     _debounceRemove(item.slabId, removedItem, index);
   }
-
-  // ---------------- TOTALS ----------------
-  double get totalQty => _cartItems.fold(0.0, (sum, e) => sum + e.quantity);
-
-  double get grandTotal =>
-      _cartItems.fold(0.0, (sum, e) => sum + e.totalAmount);
 
   // ---------------- UI ----------------
   @override
@@ -247,20 +276,10 @@ class _MyCartScreenState extends State<MyCartScreen> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                GestureDetector(
+                                _qtyButton(
+                                  icon: Icons.close,
+                                  color: AppColors.red,
                                   onTap: () => _removeItem(item),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xffe8003e),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Icon(
-                                      Icons.close,
-                                      color: AppColors.white,
-                                      size: 16,
-                                    ),
-                                  ),
                                 ),
                               ],
                             ),
@@ -298,39 +317,31 @@ class _MyCartScreenState extends State<MyCartScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
+                                Row(
+                                  children: [
+                                    _qtyButton(
+                                      icon: Icons.remove,
+                                      onTap: () => _decreaseQty(item),
                                     ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      _qtyButton(
-                                        icon: Icons.remove,
-                                        onTap: () => _decreaseQty(item),
-                                      ),
 
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                        ),
-                                        child: Text(
-                                          item.quantity.toInt().toString(),
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        item.quantity.toInt().toString(),
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
+                                    ),
 
-                                      _qtyButton(
-                                        icon: Icons.add,
-                                        onTap: () => _increaseQty(item),
-                                      ),
-                                    ],
-                                  ),
+                                    _qtyButton(
+                                      icon: Icons.add,
+                                      onTap: () => _increaseQty(item),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -359,21 +370,6 @@ class _MyCartScreenState extends State<MyCartScreen> {
                   ),
                   child: Column(
                     children: [
-                      // Text(
-                      //   'Total Quantity: $totalQty KG',
-                      //   style: const TextStyle(
-                      //     fontWeight: FontWeight.bold,
-                      //     fontSize: 16,
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 6),
-                      // Text(
-                      //   'Grand Total: ₹ ${grandTotal.toStringAsFixed(2)}',
-                      //   style: const TextStyle(
-                      //     fontWeight: FontWeight.bold,
-                      //     fontSize: 16,
-                      //   ),
-                      // ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -388,7 +384,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                                 ),
                               ),
                               Text(
-                                '$totalQty KG',
+                                '$_totalWeight KG',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -407,7 +403,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                                 ),
                               ),
                               Text(
-                                '₹ ${grandTotal.toStringAsFixed(2)}',
+                                '₹ ${_grandTotal.toStringAsFixed(2)}',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -435,13 +431,20 @@ class _MyCartScreenState extends State<MyCartScreen> {
   }
 
   // -------- Qty Button --------
-  Widget _qtyButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _qtyButton({
+    required IconData icon,
+    Color? color,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(6),
-
-        child: Icon(icon, size: 18, color: const Color(0xff6c747e)),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color ?? AppColors.textSecondary,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 18, color: AppColors.white),
       ),
     );
   }

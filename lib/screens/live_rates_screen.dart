@@ -477,8 +477,8 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
     }
 
     try {
-      final unitWeight = getUnitWeight(slabName);
-      final double totalKg = unitQty * unitWeight;
+      // final unitWeight = getUnitWeight(slabName);
+      // final double totalKg = unitQty * unitWeight;
 
       // ================= API DATA (DIRECT) =================
       final double minWeight = double.parse(slab['MinWeight'].toString());
@@ -494,17 +494,17 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
         return {'success': false, 'message': 'User not logged in'};
       }
       // ================= DEBUG =================
-      debugPrint('======== ADD TO CART FINAL ========');
-      debugPrint('User ID        : $userId');
-      debugPrint('Slab ID        : $slabId');
-      debugPrint('Slab Name      : $slabName');
-      debugPrint('Unit Qty       : $unitQty');
-      debugPrint('Unit Weight    : $unitWeight');
-      debugPrint('Total KG       : $totalKg');
-      debugPrint('Buy Price      : $buyPrice');
-      debugPrint('MinWeight(API) : $minWeight');
-      debugPrint('MaxWeight(API) : $maxWeight'); // 0 = unlimited
-      debugPrint('===================================');
+      // debugPrint('======== ADD TO CART FINAL ========');
+      // debugPrint('User ID        : $userId');
+      // debugPrint('Slab ID        : $slabId');
+      // debugPrint('Slab Name      : $slabName');
+      // debugPrint('Unit Qty       : $unitQty');
+      // debugPrint('Unit Weight    : $unitWeight');
+      // debugPrint('Total KG       : $totalKg');
+      // debugPrint('Buy Price      : $buyPrice');
+      // debugPrint('MinWeight(API) : $minWeight');
+      // debugPrint('MaxWeight(API) : $maxWeight'); // 0 = unlimited
+      // debugPrint('===================================');
 
       /// ADD TO CART API
       final apiResult = await apiService.addToCart(
@@ -518,16 +518,16 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
       );
 
       // ================= RESPONSE =================
-      debugPrint('======== RESPONSE ========');
-      debugPrint(apiResult.toString());
-      debugPrint('==========================');
+      // debugPrint('======== RESPONSE ========');
+      // debugPrint(apiResult.toString());
+      // debugPrint('==========================');
 
       if (apiResult['success'] != true) {
         debugPrint('❌ API FAILED');
         return {'success': false, 'message': 'Something went wrong'};
       }
 
-      debugPrint('✅ ADDED TO CART SUCCESS');
+      // debugPrint('✅ ADDED TO CART SUCCESS');
       return {
         'success': true,
         'message': apiResult['message'] ?? 'Added to cart',

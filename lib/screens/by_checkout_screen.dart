@@ -45,12 +45,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
 
     _initCheckout();
 
-    /// LIVE AUTO PRICE REFRESH EVERY 15 SEC
-    // _priceTimer = Timer.periodic(
-    //   const Duration(seconds: 15),
-    //   (_) => _syncCartWithLiveRates(silent: true),
-    // );
-
     paymentService.initPayment(
       onSuccess: (paymentId) {
         _placeOrder(paymentId); // success calls placeOrder
@@ -68,50 +62,19 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     );
   }
 
-  Future<void> _getPickupCharge() async {
-    if (userId == null || cartItems.isEmpty) return;
-
-    final result = await apiService.getDeliveryCharges(
-      userId: userId!,
-      weight: totalWeight,
-      deliveryOption: _selectedOption,
-    );
-
-    if (!mounted) return;
-
-    if (result['success'] == true) {
-      setState(() => pickupCharge = result['deliveryCharge']?.toDouble() ?? 0);
-    } else {
-      setState(() => pickupCharge = 0);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Unable to fetch courier')),
-      );
-    }
-  }
-
-  double getUnitWeightFromSlab(String slabName) {
-    final clean = slabName.toUpperCase().replaceAll('KG', '').trim();
-
-    if (clean.startsWith('0.25')) return 0.25;
-    if (clean.startsWith('0.5')) return 0.5;
-
-    return 1;
-  }
-
+  // ================= INIT =================
   Future<void> _initCheckout() async {
     await _loadUser();
     await _fetchCart();
-    // await _syncCartWithLiveRates();
   }
 
-  // ================= INIT =================
   Future<void> _loadUser() async {
     userEmail = await AuthStorage.getEmail();
     userMobile = await AuthStorage.getMobile();
     userId = await AuthStorage.getUserId();
   }
 
-  // ================= GET CART FROM API =================
+  // ================= GET CART =================
   Future<void> _fetchCart() async {
     if (userId == null) return;
 
@@ -135,97 +98,56 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     }
   }
 
-  // ================= SYNC CART WITH LIVE RATES =================
+  // ================= DELIVERY CHARGES =================
+  Future<void> _getPickupCharge() async {
+    if (userId == null || cartItems.isEmpty) return;
 
-  // Future<void> _syncCartWithLiveRates({bool silent = false}) async {
-  //   if (!mounted) return;
+    final result = await apiService.getDeliveryCharges(
+      userId: userId!,
+      weight: totalWeight,
+      deliveryOption: _selectedOption,
+    );
 
-  //   if (!silent) {
-  //     setState(() => _loading = true);
-  //   }
+    if (!mounted) return;
 
-  //   final result = await apiService.getLiveCopperRate();
+    if (result['success'] == true) {
+      setState(() => pickupCharge = result['deliveryCharge']?.toDouble() ?? 0);
+    } else {
+      setState(() => pickupCharge = 0);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Unable to fetch courier')),
+      );
+    }
+  }
 
-  //   if (!mounted) return;
+  // ================= UNIT WEIGHT =================
+  double getUnitWeightFromSlab(String slabName) {
+    final clean = slabName.toUpperCase().replaceAll('KG', '').trim();
 
-  //   if (result['success'] == true) {
-  //     final slabs = result['data']['Slabs'] as List;
+    if (clean.startsWith('0.25')) return 0.25;
+    if (clean.startsWith('0.5')) return 0.5;
 
-  //     final db = CartDatabaseService.instance;
-  //     final items = await db.getCartItems();
+    return 1;
+  }
 
-  //     bool priceChanged = false;
+  // ================= CALCULATIONS =================
+  double get totalWeight {
+    double weight = 0;
 
-  //     for (final item in items) {
-  //       final liveSlab = slabs.cast<Map<String, dynamic>?>().firstWhere(
-  //         (s) => s?['Id'] == item.slabId,
-  //         orElse: () => null,
-  //       );
+    for (final item in cartItems) {
+      final slabName = item['SlabName'] ?? '';
+      final qty = (item['Quantity'] ?? 0).toDouble();
 
-  //       if (liveSlab != null) {
-  //         final newBuyPrice =
-  //             double.tryParse(liveSlab['BuyPrice'].toString()) ?? item.buyPrice;
+      final unit = getUnitWeightFromSlab(slabName);
 
-  //         if ((newBuyPrice - item.buyPrice).abs() >= 0.01) {
-  //           await db.updatePrice(item.id!, newBuyPrice);
-  //           priceChanged = true;
-  //         }
-  //       }
-  //     }
+      weight += unit * qty;
+    }
 
-  //     final updatedItems = await db.getCartItems();
-
-  //     if (!mounted) return;
-
-  //     setState(() {
-  //       cartItems = updatedItems;
-  //       _loading = false;
-  //     });
-
-  //     /// show only when price changed and silent sync
-  //     if (silent && priceChanged) {
-  //       ScaffoldMessenger.of(context)
-  //         ..hideCurrentSnackBar()
-  //         ..showSnackBar(
-  //           SnackBar(
-  //             content: Text("Price updated based on live market"),
-  //             duration: const Duration(seconds: 2),
-  //             behavior: SnackBarBehavior.floating,
-  //           ),
-  //         );
-  //     }
-  //   } else {
-  //     if (!silent && mounted) {
-  //       setState(() => _loading = false);
-
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text(result['message'] ?? "Failed to sync prices")),
-  //       );
-  //     }
-  //   }
-  // }
-
-  // ---------------- calculations ----------------
-  // double get totalWeight {
-  //   double weight = 0;
-
-  //   for (final item in cartItems) {
-  //     final unitWeight = getUnitWeightFromSlab(item.slab);
-  //     weight += unitWeight * item.qty;
-  //   }
-
-  //   return weight;
-  // }
-
-  double get totalWeight =>
-      cartItems.fold(0, (sum, e) => sum + (e['Quantity'] ?? 0));
-
-  // double get totalQty => cartItems.fold(0, (sum, e) => sum + e.qty);
+    return weight;
+  }
 
   double get subTotal =>
       cartItems.fold(0, (sum, e) => sum + (e['TotalAmount'] ?? 0));
-
-  // double get effectivePricePerKg => totalQty == 0 ? 0 : subTotal / totalQty;
 
   double get gst => _selectedOption == 'Digital Wallet' ? 0 : subTotal * 0.18;
 
@@ -270,8 +192,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               // buildSlabPrices(),
               SummaryRowCard(
                 label: 'Slab',
-                value: cartItems.map((e) => "₹${e['SlabName']}").join(', '),
-                // value: 'CART ITEMS',
+                value: cartItems.map((e) => e['SlabName']).join(', '),
               ),
               const SizedBox(height: 24),
               SummaryRowCard(label: 'Order Type', value: 'BUY'),
@@ -279,7 +200,10 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               SummaryRowCard(
                 label: 'Price per (KG)',
                 value: cartItems
-                    .map((e) => "₹${(e['PricePerKg'] ?? 0).toStringAsFixed(2)}")
+                    .map(
+                      (e) =>
+                          "₹${(e['PricePerKg'] ?? 0).toDouble().toStringAsFixed(2)}",
+                    )
                     .join(', '),
               ),
               const SizedBox(height: 24),
@@ -363,20 +287,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
       return;
     }
 
-    // ================== IMPORTANT FIX START ==================
-    // Re-sync backend cart with latest local cart
-
-    // for (final item in cartItems) {
-    //   await apiService.addToCart(
-    //     userId: userId!,
-    //     slabName: item.slab,
-    //     pricePerKg: item.buyPrice,
-    //     qty: item.qty,
-    //     minWeight: 1, // you can adjust if needed
-    //     maxWeight: item.qty.toInt(),
-    //   );
-    // }
-
     final result = await apiService.placeOrderFromCart(
       userId: userId!,
       razorpayPaymentId: razorpayPaymentId,
@@ -388,24 +298,16 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     if (!mounted) return;
 
     if (result['success'] == true) {
-      //  print(
-      //   "Type: BUY, DAta: ${result['data']}",
-      // );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? "Order placed successfully"),
         ),
       );
 
-      // clear cart
-      // await CartDatabaseService.instance.clearCart();
-
       // navigate success
       if (!mounted) return;
       final data = result['data']['Data'];
-      // print(
-      //   "Type: BUY, Qty: ${data['Data']['TotalQty']}, Price: ${data['Data']['FinalTotal']}, OrderId: ${data['Data']['OrderId']}, PaymentStatus: ${data['Data']['PaymentStatus']}",
-      // );
+
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.orderSuccess,
