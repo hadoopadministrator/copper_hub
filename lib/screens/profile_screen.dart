@@ -62,23 +62,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
- void _updateForm() {
-  if (!isEditing) return;
+  void _updateForm() {
+    if (!isEditing) return;
 
-  final isValid =
-      Validators.fullName(fullNameController.text.trim()) == null &&
-      Validators.email(emailController.text.trim()) == null &&
-      Validators.mobile(mobileController.text.trim()) == null &&
-      Validators.address(addressController.text.trim()) == null &&
-      Validators.pincode(pincodeController.text.trim()) == null;
+    final isValid =
+        Validators.fullName(fullNameController.text.trim()) == null &&
+        Validators.email(emailController.text.trim()) == null &&
+        Validators.mobile(mobileController.text.trim()) == null &&
+        Validators.address(addressController.text.trim()) == null &&
+        Validators.pincode(pincodeController.text.trim()) == null;
 
-  if (isValid != _isFormValid) {
-    setState(() {
-      _isFormValid = isValid;
-    });
+    if (isValid != _isFormValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
   }
-}
-
 
   @override
   void dispose() {
@@ -204,6 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     TextInputAction textInputAction = TextInputAction.next,
     bool enabled = true,
     String? Function(String?)? validator,
+    bool autoUpperCase = false,
   }) {
     if (isEditing && enabled) {
       return Padding(
@@ -214,6 +214,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           textInputAction: textInputAction,
           decoration: AppDecorations.textField(label: label),
           validator: validator,
+          textCapitalization: autoUpperCase
+              ? TextCapitalization.characters
+              : TextCapitalization.none,
+          onChanged: autoUpperCase
+              ? (value) {
+                  final upper = value.toUpperCase();
+                  if (value != upper) {
+                    controller.value = controller.value.copyWith(
+                      text: upper,
+                      selection: TextSelection.collapsed(offset: upper.length),
+                    );
+                  }
+                }
+              : null,
         ),
       );
     }
@@ -365,6 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (text.isEmpty) return null;
                           return Validators.gst(text);
                         },
+                        autoUpperCase: true,
                       ),
                       const SizedBox(height: 16),
 
@@ -428,6 +443,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (!_hasAnyBankDetailFilled()) return null;
                           return Validators.ifsc(value?.trim() ?? '');
                         },
+                        autoUpperCase: true,
                       ),
 
                       _buildField(
