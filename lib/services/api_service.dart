@@ -655,42 +655,80 @@ class ApiService {
 
   /// GET SELL DETAILS (GET)
   Future<Map<String, dynamic>> getSellDetails({
-    required int userId,
-    required int slabId,
-  }) async {
-    final Uri url = Uri.parse('$_baseUrl/GetSellDetails').replace(
-      queryParameters: {
-        'user_id': userId.toString(),
-        'slab_id': slabId.toString(),
-      },
-    );
+  required int userId,
+  required int slabId,
+}) async {
+  print("=== getSellDetails API CALLED ===");
+  print("userId: $userId | slabId: $slabId");
 
-    try {
-      final response = await http.get(url);
+  final Uri url = Uri.parse('$_baseUrl/GetSellDetails').replace(
+    queryParameters: {
+      'user_id': userId.toString(),
+      'slab_id': slabId.toString(),
+    },
+  );
 
-      if (response.statusCode != 200) {
-        return {'success': false, 'message': 'Server error'};
-      }
+  try {
+    final response = await http.get(url);
 
-      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    print("STATUS CODE: ${response.statusCode}");
+    print("RAW RESPONSE:\n${response.body}");
 
-      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-      //  print("\nsell details $jsonData--\n");
-      final bool isSuccess = jsonData['Status'] == 'Success';
-
-      return {
-        'success': isSuccess,
-        'message': jsonData['Message'],
-        'slabName': jsonData['SlabName'],
-        'pricePerKg': jsonData['CurrentSellPrice'],
-        'remainingQty': jsonData['RemainingQty'],
-        'deliveryOption': jsonData['DeliveryOption'],
-        'data': jsonData,
-      };
-    } catch (e) {
-      return {'success': false, 'message': 'Network error'};
+    if (response.statusCode != 200) {
+      return {'success': false, 'message': 'Server error'};
     }
+
+    // STEP 1: Clean XML
+    final cleaned =
+        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+
+    print("CLEANED RESPONSE:\n$cleaned");
+
+    // STEP 2: Handle multiple JSON (IMPORTANT FIX)
+    String finalJson = cleaned;
+
+    if (cleaned.contains('}{')) {
+      finalJson = cleaned.split('}{').first + '}';
+      print("FIXED MULTIPLE JSON ISSUE");
+    }
+
+    print("FINAL JSON STRING:\n$finalJson");
+
+    // STEP 3: Decode
+    final decoded = jsonDecode(finalJson);
+
+    print("DECODED TYPE: ${decoded.runtimeType}");
+    print("DECODED DATA:\n$decoded");
+
+    if (decoded is! Map<String, dynamic>) {
+      print("❌ ERROR: Response is not Map");
+      return {'success': false, 'message': 'Invalid response format'};
+    }
+
+    final jsonData = decoded;
+
+    // STEP 4: Safe parsing
+    final bool isSuccess =
+        jsonData['Status']?.toString().toLowerCase() == 'success';
+
+    return {
+      'success': isSuccess,
+      'message': jsonData['Message'] ?? '',
+      'slabName': jsonData['SlabName'] ?? '',
+      'pricePerKg':
+          double.tryParse(jsonData['CurrentSellPrice'].toString()) ?? 0,
+      'remainingQty':
+          int.tryParse(jsonData['RemainingQty'].toString()) ?? 0,
+      'deliveryOption': jsonData['DeliveryOption'] ?? '',
+      'data': jsonData,
+    };
+  } catch (e, stack) {
+    print("❌ EXCEPTION: $e");
+    print("STACKTRACE: $stack");
+
+    return {'success': false, 'message': 'Network error'};
   }
+}
 
   /// PLACE SELL ORDER (POST)
   Future<Map<String, dynamic>> placeSellOrder({

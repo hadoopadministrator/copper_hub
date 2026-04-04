@@ -24,6 +24,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   int? _userId;
 
+  Map<String, dynamic> _originalData = {};
+
   // Controllers
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -126,6 +128,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (result['success'] == true) {
         final data = result['data'];
 
+        _originalData = Map<String, dynamic>.from(data);
+
         _userId = data['Id'];
 
         fullNameController.text = data['FullName'] ?? '';
@@ -146,6 +150,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+    void _restoreOriginalData() {
+    fullNameController.text = _originalData['FullName'] ?? '';
+    emailController.text = _originalData['Email'] ?? '';
+    mobileController.text = _originalData['Mobile'] ?? '';
+    addressController.text = _originalData['Address'] ?? '';
+    landmarkController.text = _originalData['Landmark'] ?? '';
+    pincodeController.text = _originalData['Pincode'] ?? '';
+    gstController.text = _originalData['Gst'] ?? '';
+    bankNameController.text = _originalData['BankName'] ?? '';
+    accountHolderController.text =
+        _originalData['AccountHolderName'] ?? '';
+    accountNumberController.text =
+        _originalData['AccountNumber'] ?? '';
+    confirmAccountNumberController.text =
+        _originalData['AccountNumber'] ?? '';
+    ifscController.text = _originalData['IfscCode'] ?? '';
   }
 
   // Update profile API
@@ -256,6 +278,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           IconButton(
             icon: Icon(isEditing ? Icons.close : Icons.edit),
             onPressed: () {
+              if (isEditing) {
+                _restoreOriginalData();
+              }
               setState(() {
                 isEditing = !isEditing;
               });
