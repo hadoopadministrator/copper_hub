@@ -48,7 +48,6 @@ class _MyCartScreenState extends State<MyCartScreen> {
     }
 
     final response = await _api.getCart(userId: _userId!);
-    // print("GET CART RESPONSE: $response");
 
     if (!mounted) return;
     if (response['success']) {
@@ -114,7 +113,6 @@ class _MyCartScreenState extends State<MyCartScreen> {
         slabId: slabId,
         qty: qty,
       );
-      // print("📥 RESPONSE updateCartQty: $res");
       if (!mounted) return;
       if (!res['success']) {
         _showSnack(res['message']);
@@ -222,8 +220,6 @@ class _MyCartScreenState extends State<MyCartScreen> {
   }
 
   Future<void> _removeItem(CartItemModel item) async {
-    // print("🗑 REMOVE tapped (slabId=${item.slabId})");
-
     final index = _cartItems.indexOf(item);
     final removedItem = _cartItems[index];
 

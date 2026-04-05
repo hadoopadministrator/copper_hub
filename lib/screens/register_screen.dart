@@ -459,8 +459,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      // debugPrint('Response---- $response');
-
       final bool isSuccess = response['success'] == true;
       final String message =
           response['message']?.toString() ??

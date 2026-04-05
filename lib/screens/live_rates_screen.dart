@@ -30,7 +30,6 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
   // ---------------- API ----------------
 
   Future<void> _fetchLiveRates({bool showLoader = false}) async {
-    // debugPrint("LiveRates API called at: ${DateTime.now().toString()}");
     if (showLoader && mounted) {
       setState(() => _isLoading = true);
     }
@@ -55,7 +54,6 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
   void _startAutoFetch() {
     _fetchTimer?.cancel();
     _fetchTimer = Timer.periodic(const Duration(minutes: 2), (_) {
-      // debugPrint("Timer triggered at: ${DateTime.now()}");
       _fetchLiveRates();
     });
   }
@@ -472,14 +470,10 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
     final int unitQty = _quantities[index] ?? 0;
 
     if (unitQty <= 0) {
-      debugPrint('❌ Quantity is 0');
       return {'success': false, 'message': 'Please select quantity'};
     }
 
     try {
-      // final unitWeight = getUnitWeight(slabName);
-      // final double totalKg = unitQty * unitWeight;
-
       // ================= API DATA (DIRECT) =================
       final double minWeight = double.parse(slab['MinWeight'].toString());
 
@@ -493,18 +487,6 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
       if (userId == null) {
         return {'success': false, 'message': 'User not logged in'};
       }
-      // ================= DEBUG =================
-      // debugPrint('======== ADD TO CART FINAL ========');
-      // debugPrint('User ID        : $userId');
-      // debugPrint('Slab ID        : $slabId');
-      // debugPrint('Slab Name      : $slabName');
-      // debugPrint('Unit Qty       : $unitQty');
-      // debugPrint('Unit Weight    : $unitWeight');
-      // debugPrint('Total KG       : $totalKg');
-      // debugPrint('Buy Price      : $buyPrice');
-      // debugPrint('MinWeight(API) : $minWeight');
-      // debugPrint('MaxWeight(API) : $maxWeight'); // 0 = unlimited
-      // debugPrint('===================================');
 
       /// ADD TO CART API
       final apiResult = await apiService.addToCart(
@@ -517,23 +499,15 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
         maxWeight: maxWeight,
       );
 
-      // ================= RESPONSE =================
-      // debugPrint('======== RESPONSE ========');
-      // debugPrint(apiResult.toString());
-      // debugPrint('==========================');
-
       if (apiResult['success'] != true) {
-        debugPrint('❌ API FAILED');
         return {'success': false, 'message': 'Something went wrong'};
       }
 
-      // debugPrint('✅ ADDED TO CART SUCCESS');
       return {
         'success': true,
         'message': apiResult['message'] ?? 'Added to cart',
       };
     } catch (e) {
-      debugPrint('❌ ADD TO CART ERROR: $e');
       return {'success': false, 'message': 'Something went wrong'};
     }
   }

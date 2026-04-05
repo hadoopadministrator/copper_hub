@@ -146,13 +146,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ifscController.text = data['IfscCode'] ?? '';
       }
     } catch (e) {
-      // debugPrint('Profile load error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to load profile')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-    void _restoreOriginalData() {
+  void _restoreOriginalData() {
     fullNameController.text = _originalData['FullName'] ?? '';
     emailController.text = _originalData['Email'] ?? '';
     mobileController.text = _originalData['Mobile'] ?? '';
@@ -161,12 +164,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     pincodeController.text = _originalData['Pincode'] ?? '';
     gstController.text = _originalData['Gst'] ?? '';
     bankNameController.text = _originalData['BankName'] ?? '';
-    accountHolderController.text =
-        _originalData['AccountHolderName'] ?? '';
-    accountNumberController.text =
-        _originalData['AccountNumber'] ?? '';
-    confirmAccountNumberController.text =
-        _originalData['AccountNumber'] ?? '';
+    accountHolderController.text = _originalData['AccountHolderName'] ?? '';
+    accountNumberController.text = _originalData['AccountNumber'] ?? '';
+    confirmAccountNumberController.text = _originalData['AccountNumber'] ?? '';
     ifscController.text = _originalData['IfscCode'] ?? '';
   }
 

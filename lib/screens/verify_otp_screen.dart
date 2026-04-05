@@ -80,7 +80,6 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     }
 
     if (apiOtp != null && enteredOtp.trim() != apiOtp.toString()) {
-      // print("\n\n  if: $enteredOtp=$apiOtp \n\n");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Invalid OTP M")));
@@ -90,9 +89,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     setState(() {
       _isLoading = true;
     });
-    // print("\n\n  enteredOtp: $enteredOtp \n\n");
-    // print("\n\n  mobileNo: $mobileNo \n\n");
-    // print("\n\n apiOtp: $apiOtp \n\n");
+
     try {
       final result = await apiService.verifyOtp(
         mobileNo: mobileNo,
@@ -100,12 +97,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       );
 
       if (!mounted) return;
-       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "${result['Message'] ?? "OTP verified"} ",
-          ),
-        ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("${result['Message'] ?? "OTP verified"} ")),
       );
       if (result["success"]) {
         Navigator.pushNamed(

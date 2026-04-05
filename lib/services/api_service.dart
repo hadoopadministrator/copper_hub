@@ -8,6 +8,9 @@ class ApiService {
       'https://wealthbridgeimpex.com/WebService2.asmx';
   // 'https://wealthbridgeimpex.com/webservice.asmx';
 
+  /// COMMON HEADERS
+  static const _headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+
   /// CLEAN XML RESPONSE
   String _cleanResponse(String body) {
     return body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
@@ -39,7 +42,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {
           'fullname': fullName.trim(),
           'email': email.trim(),
@@ -62,7 +65,6 @@ class ApiService {
 
       final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
       final bool isSuccess = _isSuccess(jsonData);
 
       return {
@@ -86,7 +88,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {
           'emailOrMobile': emailOrMobile.trim(),
           'password': password.trim(),
@@ -135,7 +137,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {
           'id': id.toString(),
           'fullname': fullname,
@@ -184,9 +186,6 @@ class ApiService {
     final Uri url = Uri.parse(
       '$_baseUrl/GetUserByEmailOrMobile',
     ).replace(queryParameters: {'value': emailOrMobile.trim()});
-    //  debugPrint('email or mobile:$emailOrMobile');
-
-    // debugPrint('GetUser API URL: $url');
 
     try {
       final response = await http.get(url);
@@ -207,7 +206,6 @@ class ApiService {
         'data': jsonData,
       };
     } catch (e) {
-      // debugPrint('GetUser Error: $e');
       return {'success': false, 'message': 'Something went wrong'};
     }
   }
@@ -219,7 +217,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {'id': userId.toString()},
       );
 
@@ -251,21 +249,15 @@ class ApiService {
       final response = await http.get(url);
 
       if (response.statusCode != 200) {
-        return {
-          'success': false,
-          'message': 'Server error: ${response.statusCode}',
-        };
+        return {'success': false, 'message': 'Server error'};
       }
 
-      // Remove XML wrapper
-      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+      final cleanJson = _cleanResponse(response.body);
 
-      final Map<String, dynamic> data = jsonDecode(cleanJson);
-      //  print('LiveCopper Rates: $data');
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
 
-      return {'success': true, 'data': data};
+      return {'success': true, 'data': jsonData};
     } catch (e) {
-      // debugPrint('LiveCopper Error: $e');
       return {'success': false, 'message': 'Something went wrong'};
     }
   }
@@ -293,13 +285,7 @@ class ApiService {
         'maxWeight': maxWeight.toString(),
       };
 
-      // print("FINAL API BODY: $body");
-
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: body,
-      );
+      final response = await http.post(url, headers: _headers, body: body);
 
       if (response.statusCode != 200) {
         return {
@@ -310,7 +296,6 @@ class ApiService {
 
       final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-      // print("DECODED JSON: $jsonData");
       final bool isSuccess =
           jsonData['Status']?.toString().toLowerCase() == 'success';
 
@@ -322,7 +307,6 @@ class ApiService {
         'data': jsonData,
       };
     } catch (e) {
-      // print("ADD TO CART ERROR: $e");
       return {'success': false, 'message': 'Something went wrong'};
     }
   }
@@ -334,7 +318,6 @@ class ApiService {
     ).replace(queryParameters: {'user_id': userId.toString()});
 
     try {
-
       final response = await http.get(url);
 
       if (response.statusCode != 200) {
@@ -351,8 +334,6 @@ class ApiService {
       }
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-      print("\n getCart: $jsonData \n");
 
       final bool isSuccess = _isSuccess(jsonData);
 
@@ -375,7 +356,6 @@ class ApiService {
         'grandTotal': grandTotal,
       };
     } catch (e) {
-      // print("GET CART ERROR: $e");
       return {'success': false, 'message': 'Something went wrong'};
     }
   }
@@ -391,7 +371,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {
           'user_id': userId.toString(),
           'slab_id': slabId.toString(),
@@ -408,7 +388,6 @@ class ApiService {
 
       final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-      print("\n updateCartQty: $jsonData \n");
 
       final bool isSuccess = _isSuccess(jsonData);
 
@@ -433,7 +412,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {'user_id': userId.toString(), 'slab_id': slabId.toString()},
       );
 
@@ -446,7 +425,6 @@ class ApiService {
 
       final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-      print("\n removeCartItem: $jsonData \n");
       final bool isSuccess = _isSuccess(jsonData);
 
       return {
@@ -473,7 +451,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {
           'user_id': userId.toString(),
           'razorpay_payment_id': razorpayPaymentId,
@@ -493,7 +471,6 @@ class ApiService {
       // Remove XML wrapper
       final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-      //  print("\nplace order from cart $jsonData \n");
       final bool isSuccess =
           jsonData['Status']?.toString().toLowerCase() == 'success';
 
@@ -528,8 +505,6 @@ class ApiService {
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
 
-      // print('\ngetOrdersByUser FULL:$jsonData\n');
-
       final bool isSuccess =
           jsonData['Status']?.toString().toLowerCase() == 'success';
 
@@ -542,11 +517,8 @@ class ApiService {
 
       final List<dynamic> orders = jsonData['Data'] ?? [];
 
-      // print('\ngetOrdersByUser LIST:$orders\n');
-
       return {'success': true, 'data': orders};
     } catch (e) {
-      // print("ERROR getOrdersByUser: $e");
       return {'success': false, 'message': e.toString()};
     }
   }
@@ -572,9 +544,7 @@ class ApiService {
 
       // Decode JSON
       final List<dynamic> jsonData = jsonDecode(cleanJson);
-      // print('\ngetOrderById:$jsonData\n');
 
-      // Usually GetOrderByID returns a list with one object, extract first
       final Map<String, dynamic> orderData = jsonData.isNotEmpty
           ? Map<String, dynamic>.from(jsonData[0])
           : {};
@@ -635,16 +605,14 @@ class ApiService {
         return {'success': false, 'message': 'Server error'};
       }
 
-      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-
+      final cleanJson = _cleanResponse(response.body);
       final jsonData = jsonDecode(cleanJson);
-
-      final bool isSuccess = jsonData['Status'] == 'Success';
+      final bool isSuccess = _isSuccess(jsonData);
 
       return {
         'success': isSuccess,
-        'message': jsonData['Message'],
-        'remainingQty': jsonData['RemainingQty'],
+        'message': jsonData['Message'] ?? '',
+        'remainingQty': int.tryParse(jsonData['RemainingQty'].toString()) ?? 0,
         'slabId': jsonData['SlabId'],
         'slabName': jsonData['SlabName'],
       };
@@ -655,80 +623,45 @@ class ApiService {
 
   /// GET SELL DETAILS (GET)
   Future<Map<String, dynamic>> getSellDetails({
-  required int userId,
-  required int slabId,
-}) async {
-  print("=== getSellDetails API CALLED ===");
-  print("userId: $userId | slabId: $slabId");
+    required int userId,
+    required int slabId,
+  }) async {
+    final Uri url = Uri.parse('$_baseUrl/GetSellDetails').replace(
+      queryParameters: {
+        'user_id': userId.toString(),
+        'slab_id': slabId.toString(),
+      },
+    );
 
-  final Uri url = Uri.parse('$_baseUrl/GetSellDetails').replace(
-    queryParameters: {
-      'user_id': userId.toString(),
-      'slab_id': slabId.toString(),
-    },
-  );
+    try {
+      final response = await http.get(url);
 
-  try {
-    final response = await http.get(url);
+      if (response.statusCode != 200) {
+        return {'success': false, 'message': 'Server error'};
+      }
 
-    print("STATUS CODE: ${response.statusCode}");
-    print("RAW RESPONSE:\n${response.body}");
+      final cleanJson = _cleanResponse(response.body);
 
-    if (response.statusCode != 200) {
-      return {'success': false, 'message': 'Server error'};
+      if (cleanJson.isEmpty) {
+        return {'success': false, 'message': 'Empty response'};
+      }
+
+      final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
+      final bool isSuccess = _isSuccess(jsonData);
+
+      return {
+        'success': isSuccess,
+        'slabName': jsonData['SlabName'] ?? '',
+        'pricePerKg':
+            double.tryParse(jsonData['CurrentSellPrice'].toString()) ?? 0,
+        'remainingQty': int.tryParse(jsonData['RemainingQty'].toString()) ?? 0,
+        'deliveryOption': jsonData['DeliveryOption']?.toString().trim() ?? '',
+        'data': jsonData,
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Network error'};
     }
-
-    // STEP 1: Clean XML
-    final cleaned =
-        response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-
-    print("CLEANED RESPONSE:\n$cleaned");
-
-    // STEP 2: Handle multiple JSON (IMPORTANT FIX)
-    String finalJson = cleaned;
-
-    if (cleaned.contains('}{')) {
-      finalJson = cleaned.split('}{').first + '}';
-      print("FIXED MULTIPLE JSON ISSUE");
-    }
-
-    print("FINAL JSON STRING:\n$finalJson");
-
-    // STEP 3: Decode
-    final decoded = jsonDecode(finalJson);
-
-    print("DECODED TYPE: ${decoded.runtimeType}");
-    print("DECODED DATA:\n$decoded");
-
-    if (decoded is! Map<String, dynamic>) {
-      print("❌ ERROR: Response is not Map");
-      return {'success': false, 'message': 'Invalid response format'};
-    }
-
-    final jsonData = decoded;
-
-    // STEP 4: Safe parsing
-    final bool isSuccess =
-        jsonData['Status']?.toString().toLowerCase() == 'success';
-
-    return {
-      'success': isSuccess,
-      'message': jsonData['Message'] ?? '',
-      'slabName': jsonData['SlabName'] ?? '',
-      'pricePerKg':
-          double.tryParse(jsonData['CurrentSellPrice'].toString()) ?? 0,
-      'remainingQty':
-          int.tryParse(jsonData['RemainingQty'].toString()) ?? 0,
-      'deliveryOption': jsonData['DeliveryOption'] ?? '',
-      'data': jsonData,
-    };
-  } catch (e, stack) {
-    print("❌ EXCEPTION: $e");
-    print("STACKTRACE: $stack");
-
-    return {'success': false, 'message': 'Network error'};
   }
-}
 
   /// PLACE SELL ORDER (POST)
   Future<Map<String, dynamic>> placeSellOrder({
@@ -742,7 +675,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {
           'user_id': userId.toString(),
           'slab_id': slabId.toString(),
@@ -761,7 +694,6 @@ class ApiService {
       final cleanJson = _cleanResponse(response.body);
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-      //  print("\n\n SELL --- $jsonData-- \n\n");
 
       final bool isSuccess =
           jsonData['Status']?.toString().toLowerCase() == 'success';
@@ -801,16 +733,20 @@ class ApiService {
       final bool isSuccess = _isSuccess(jsonData);
 
       if (!isSuccess) {
-        return {'success': false, 'message': 'Bank details not found'};
+        return {
+          'success': false,
+          'message': jsonData['Message'] ?? 'Bank details not found',
+        };
       }
 
       return {
         'success': true,
+        'message': jsonData['Message'],
         'data': {
-          'bankName': jsonData['BankName'],
-          'accountHolder': jsonData['AccountHolder'],
-          'accountNumber': jsonData['AccountNumber'],
-          'ifscCode': jsonData['IfscCode'],
+          'bankName': jsonData['BankName'] ?? '',
+          'accountHolder': jsonData['AccountHolder'] ?? '',
+          'accountNumber': jsonData['AccountNumber'] ?? '',
+          'ifscCode': jsonData['IfscCode'] ?? '',
         },
       };
     } catch (e) {
@@ -831,7 +767,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {
           'user_id': userId.toString(),
           'bank_name': bankName.trim(),
@@ -870,11 +806,7 @@ class ApiService {
 
     try {
       final response = await http
-          .post(
-            url,
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: {'mobile_no': mobileNo.trim()},
-          )
+          .post(url, headers: _headers, body: {'mobile_no': mobileNo.trim()})
           .timeout(const Duration(seconds: 20));
 
       if (response.statusCode != 200) {
@@ -885,7 +817,6 @@ class ApiService {
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
 
       final bool isSuccess = _isSuccess(jsonData);
-      // print("\n\n forgotPassword $jsonData \n\n");
       return {
         'success': isSuccess,
         'message': jsonData['Message'],
@@ -906,15 +837,12 @@ class ApiService {
     final Uri url = Uri.parse('$_baseUrl/VerifyOtp');
 
     try {
-      // print("\n\n API $mobileNo and $otp \n\n");
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {'mobile_no': mobileNo.trim(), 'otp': otp.trim()},
       );
-      // print("\n\n API ${response.statusCode} \n\n");
 
-      // print("\n\n API ${response.body} \n\n");
       if (response.statusCode != 200) {
         return {'success': false, 'message': 'Server error'};
       }
@@ -926,7 +854,6 @@ class ApiService {
 
       final status = jsonData['Status'] ?? jsonData['status'];
       final bool isSuccess = status.toString().toLowerCase() == 'success';
-      // print("\n\n verifyOtp API $jsonData \n\n");
       return {
         'success': isSuccess,
         'message': "${jsonData['Message']}",
@@ -947,7 +874,7 @@ class ApiService {
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: _headers,
         body: {
           'new_password': newPassword.trim(),
           'mobile_no': mobileNo.trim(),
@@ -965,7 +892,6 @@ class ApiService {
 
       final status = jsonData['Status'] ?? jsonData['status'];
       final bool isSuccess = status.toString().toLowerCase() == 'success';
-      // print("\n\n resetPassword API $jsonData \n\n");
       return {
         'success': isSuccess,
         'message':
@@ -1042,13 +968,9 @@ class ApiService {
         };
       }
 
-      // Remove XML wrapper
-      final cleanJson = response.body.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-
+      final cleanJson = _cleanResponse(response.body);
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-
-      final bool isSuccess =
-          jsonData['Status']?.toString().toLowerCase() == 'success';
+      final bool isSuccess = _isSuccess(jsonData);
 
       return {
         'success': isSuccess,
