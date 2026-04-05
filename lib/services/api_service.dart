@@ -268,7 +268,7 @@ class ApiService {
     required int slabId,
     required String slabName,
     required double pricePerKg,
-    required double qty,
+    required int qty,
     required double minWeight,
     required double maxWeight,
   }) async {

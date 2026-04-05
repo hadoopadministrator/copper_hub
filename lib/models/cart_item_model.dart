@@ -2,15 +2,12 @@ class CartItemModel {
   final int cartId;
   final int userId;
   final int slabId;
-
   final String slabName;
   final double minWeight;
   final double maxWeight;
-
   final double pricePerKg;
-  final double quantity;
+  final int quantity;
   final double totalAmount;
-
   final String addedOn;
 
   CartItemModel({
@@ -31,20 +28,17 @@ class CartItemModel {
       cartId: json['CartID'] ?? 0,
       userId: json['UserID'] ?? 0,
       slabId: json['SlabId'] ?? 0,
-
       slabName: json['SlabName'] ?? '',
       minWeight: (json['MinWeight'] as num?)?.toDouble() ?? 0.0,
       maxWeight: (json['MaxWeight'] as num?)?.toDouble() ?? 0.0,
-
       pricePerKg: (json['PricePerKg'] as num?)?.toDouble() ?? 0.0,
-      quantity: (json['Quantity'] as num?)?.toDouble() ?? 0.0,
+      quantity: (json['Quantity'] as num?)?.toInt() ?? 0,
       totalAmount: (json['TotalAmount'] as num?)?.toDouble() ?? 0.0,
-
       addedOn: json['AddedOn'] ?? '',
     );
   }
 
-  CartItemModel copyWith({double? quantity, double? totalAmount}) {
+  CartItemModel copyWith({int? quantity, double? totalAmount}) {
     return CartItemModel(
       cartId: cartId,
       userId: userId,

@@ -494,7 +494,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
         slabId: slabId,
         slabName: slabName,
         pricePerKg: buyPrice,
-        qty: unitQty.toDouble(),
+        qty: unitQty,
         minWeight: minWeight,
         maxWeight: maxWeight,
       );

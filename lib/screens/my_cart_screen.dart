@@ -26,7 +26,6 @@ class _MyCartScreenState extends State<MyCartScreen> {
   double _grandTotal = 0;
 
   Timer? _cartDebounce;
-  Timer? _refreshDebounce;
 
   // ---------------- SAFE SNACKBAR ----------------
   void _showSnack(String message) {
@@ -40,39 +39,31 @@ class _MyCartScreenState extends State<MyCartScreen> {
   // ---------------- LOAD CART ----------------
   Future<void> _loadCart({bool showLoader = true}) async {
     if (showLoader) setState(() => _isLoading = true);
+
     _userId ??= await AuthStorage.getUserId();
 
     if (_userId == null) {
-      if (showLoader) setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
       return;
     }
 
     final response = await _api.getCart(userId: _userId!);
 
     if (!mounted) return;
+
     if (response['success']) {
       final List list = response['data'];
 
       setState(() {
-        _cartItems = list.map((e) {
-          return CartItemModel.fromJson(e);
-        }).toList();
+        _cartItems = list.map((e) => CartItemModel.fromJson(e)).toList();
 
-        _totalWeight = (response['totalWeight'] ?? 0).toDouble();
-        _grandTotal = (response['grandTotal'] ?? 0).toDouble();
+        _updateSummary();
         _isLoading = false;
       });
     } else {
-      if (showLoader) setState(() => _isLoading = false);
+     setState(() => _isLoading = false);
       _showSnack(response['message']);
     }
-  }
-
-  void _refreshCart() {
-    _refreshDebounce?.cancel();
-    _refreshDebounce = Timer(const Duration(milliseconds: 300), () {
-      _loadCart(showLoader: false);
-    });
   }
 
   @override
@@ -81,155 +72,142 @@ class _MyCartScreenState extends State<MyCartScreen> {
     _loadCart();
   }
 
-  ({int min, int? max}) getQtyLimitsFromSlab(String slabName) {
-    final clean = slabName.replaceAll('KG', '').trim();
+  
 
-    // fractional slabs
-    if (clean.startsWith('0.25') || clean.startsWith('0.5')) {
-      return (min: 1, max: null);
-    }
+  // ---------------- WEIGHT ----------------
+  double getActualWeight(CartItemModel item) {
+  if (item.minWeight < 1) {
+    return item.quantity * item.minWeight;
+  }
+  return item.quantity.toDouble();
+}
 
-    // range slabs
-    if (clean.contains('-')) {
-      final parts = clean.split('-');
-      return (min: int.parse(parts[0].trim()), max: int.parse(parts[1].trim()));
-    }
 
-    // plus slabs
-    if (clean.contains('+')) {
-      return (min: int.parse(clean.replaceAll('+', '').trim()), max: null);
-    }
+  // ---------------- SUMMARY ----------------
+  void _updateSummary() {
+  double totalWeight = 0;
+  double grandTotal = 0;
 
-    return (min: 1, max: null);
+  for (var item in _cartItems) {
+    final weight = getActualWeight(item);
+
+    final amount = item.quantity * item.pricePerKg;
+
+    totalWeight += weight;
+    grandTotal += amount;
   }
 
-  // ---------------- DEBOUNCE API ----------------
-  void _debounceCartUpdate({required int slabId, required int qty}) {
+  setState(() {
+    _totalWeight = totalWeight;
+    _grandTotal = grandTotal;
+  });
+}
+
+
+  // ---------------- DEBOUNCE UPDATE ----------------
+  void _debounceUpdate(int slabId, int qty) {
     _cartDebounce?.cancel();
 
-    _cartDebounce = Timer(const Duration(milliseconds: 500), () async {
-      final res = await _api.updateCartQty(
+    _cartDebounce = Timer(const Duration(milliseconds: 500), () {
+      _api.updateCartQty(
         userId: _userId!,
         slabId: slabId,
         qty: qty,
       );
-      if (!mounted) return;
-      if (!res['success']) {
-        _showSnack(res['message']);
-      } else {
-        _refreshCart();
-      }
     });
   }
 
-  void _debounceRemove(int slabId, CartItemModel removedItem, int index) {
-    _cartDebounce?.cancel();
+// ---------------- LIMITS ----------------
+  ({int min, int? max}) getQtyLimits(CartItemModel item) {
+    if (item.minWeight < 1) {
+      return (min: 1, max: null);
+    }
 
-    _cartDebounce = Timer(const Duration(milliseconds: 400), () async {
-      final res = await _api.removeCartItem(userId: _userId!, slabId: slabId);
-      if (!mounted) return;
-      if (!res['success']) {
-        setState(() {
-          _cartItems.insert(index, removedItem);
-        });
-
-        _showSnack(res['message']);
-      } else {
-        _refreshCart();
-      }
-    });
+    return (
+      min: item.minWeight.toInt(),
+      max: item.maxWeight == 0 ? null : item.maxWeight.toInt(),
+    );
   }
-
+  
   // ---------------- ACTIONS ----------------
-  Future<void> _increaseQty(CartItemModel item) async {
-    final limits = getQtyLimitsFromSlab(item.slabName);
-    final maxQty = limits.max == 0 ? null : limits.max;
+ Future<void> _increaseQty(CartItemModel item) async {
+  final limits = getQtyLimits(item);
 
-    if (maxQty != null && item.quantity >= maxQty) {
-      _showSnack("Maximum limit is $maxQty KG");
-      return;
-    }
-
-    final oldQty = item.quantity;
-    final newQty = oldQty + 1;
-    final index = _cartItems.indexOf(item);
-
-    // instant UI update
-    setState(() {
-      _cartItems[index] = item.copyWith(quantity: newQty);
-      _updateSummary();
-    });
-
-    // silent API call
-    _debounceCartUpdate(slabId: item.slabId, qty: newQty.toInt());
+  if (limits.max != null && item.quantity >= limits.max!) {
+    _showSnack("Max limit reached");
+    return;
   }
 
-  Future<void> _decreaseQty(CartItemModel item) async {
-    final limits = getQtyLimitsFromSlab(item.slabName);
-    final minQty = limits.min;
+  final index = _cartItems.indexOf(item);
+  final newQty = item.quantity + 1;
 
-    if (item.quantity <= minQty) {
-      _showSnack("Minimum limit is $minQty KG");
-      return;
-    }
+  final amount = newQty * item.pricePerKg;
 
-    final oldQty = item.quantity;
-    final newQty = oldQty - 1;
-    final index = _cartItems.indexOf(item);
+  setState(() {
+    _cartItems[index] = item.copyWith(
+      quantity: newQty,
+      totalAmount: amount,
+    );
+  });
 
-    setState(() {
-      _cartItems[index] = item.copyWith(quantity: newQty);
-      _updateSummary();
-    });
+  _updateSummary();
+  _debounceUpdate(item.slabId, newQty);
+}
 
-    _debounceCartUpdate(slabId: item.slabId, qty: newQty.toInt());
+
+ Future<void> _decreaseQty(CartItemModel item) async {
+  final limits = getQtyLimits(item);
+
+  if (item.quantity <= limits.min) {
+    _showSnack("Minimum limit is ${limits.min}");
+    return;
   }
 
-  void _updateSummary() {
-    double totalWeight = 0;
-    double grandTotal = 0;
+  final index = _cartItems.indexOf(item);
+  final newQty = item.quantity - 1;
 
-    for (var item in _cartItems) {
-      // Parse slab weight
-      final clean = item.slabName.replaceAll('KG', '').trim();
+  final amount = newQty * item.pricePerKg;
 
-      double slabWeight = 1; // default
+  setState(() {
+    _cartItems[index] = item.copyWith(
+      quantity: newQty,
+      totalAmount: amount,
+    );
+  });
 
-      if (clean.startsWith('0.25')) {
-        slabWeight = 0.25;
-      } else if (clean.startsWith('0.5')) {
-        slabWeight = 0.5;
-      } else if (clean.contains('-')) {
-        // range slab, take min value as unit weight
-        slabWeight = double.tryParse(clean.split('-')[0].trim()) ?? 1;
-      } else if (clean.contains('+')) {
-        // plus slab, take value as weight
-        slabWeight = double.tryParse(clean.replaceAll('+', '').trim()) ?? 1;
-      } else {
-        slabWeight = double.tryParse(clean) ?? 1;
-      }
+  _updateSummary();
+  _debounceUpdate(item.slabId, newQty);
+}
 
-      totalWeight += item.quantity * slabWeight;
-      grandTotal += item.totalAmount;
-    }
 
-    setState(() {
-      _totalWeight = totalWeight;
-      _grandTotal = grandTotal;
-    });
-  }
-
-  Future<void> _removeItem(CartItemModel item) async {
+   Future<void> _removeItem(CartItemModel item) async {
     final index = _cartItems.indexOf(item);
     final removedItem = _cartItems[index];
 
-    // Instant UI update: remove item locally
+    // instant UI
     setState(() {
       _cartItems.removeAt(index);
     });
 
-    _debounceRemove(item.slabId, removedItem, index);
+    _updateSummary();
+
+    final res = await _api.removeCartItem(
+      userId: _userId!,
+      slabId: item.slabId,
+    );
+
+    if (!res['success']) {
+      // rollback
+      setState(() {
+        _cartItems.insert(index, removedItem);
+      });
+
+      _updateSummary();
+      _showSnack(res['message']);
+    }
   }
+
+
 
   // ---------------- UI ----------------
   @override
