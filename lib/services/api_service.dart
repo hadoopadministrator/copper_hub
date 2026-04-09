@@ -5,8 +5,9 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String _baseUrl =
-      'https://wealthbridgeimpex.com/WebService2.asmx';
-  // 'https://wealthbridgeimpex.com/webservice.asmx';
+      'https://wealthbridgeimpex.com/webservice.asmx';
+
+  // 'https://wealthbridgeimpex.com/WebService2.asmx'; test url
 
   /// COMMON HEADERS
   static const _headers = {'Content-Type': 'application/x-www-form-urlencoded'};
@@ -491,13 +492,8 @@ class ApiService {
       '$_baseUrl/GetOrdersByUser',
     ).replace(queryParameters: {'user_id': userId.toString()});
 
-    print("📤 [GetOrdersByUser] URL: $url");
-
     try {
       final response = await http.get(url);
-
-      print("📥 Status Code: ${response.statusCode}");
-      print("📥 Raw Response: ${response.body}");
 
       if (response.statusCode != 200) {
         return {
@@ -507,10 +503,8 @@ class ApiService {
       }
 
       final cleanJson = _cleanResponse(response.body);
-      print("🧹 Cleaned JSON: $cleanJson");
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-      print("📦 Decoded JSON: $jsonData");
 
       if (!_isSuccess(jsonData)) {
         return {
@@ -522,10 +516,7 @@ class ApiService {
       final List<dynamic> orders = jsonData['Data'] ?? [];
 
       return {'success': true, 'data': orders};
-    } catch (e, stackTrace) {
-      print("🔥 Exception: $e");
-      print("📍 StackTrace: $stackTrace");
-
+    } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
   }
@@ -536,13 +527,8 @@ class ApiService {
       '$_baseUrl/GetOrderByID',
     ).replace(queryParameters: {'orderId': orderId.toString()});
 
-    print("📤 [GetOrderByID] URL: $url");
-
     try {
       final response = await http.get(url);
-
-      print("📥 Status Code: ${response.statusCode}");
-      print("📥 Raw Response: ${response.body}");
 
       if (response.statusCode != 200) {
         return {
@@ -552,10 +538,8 @@ class ApiService {
       }
 
       final cleanJson = _cleanResponse(response.body);
-      print("🧹 Cleaned JSON: $cleanJson");
 
       final Map<String, dynamic> jsonData = jsonDecode(cleanJson);
-      print("📦 Decoded JSON: $jsonData");
 
       if (!_isSuccess(jsonData)) {
         return {
@@ -569,10 +553,7 @@ class ApiService {
       );
 
       return {'success': true, 'data': orderData};
-    } catch (e, stackTrace) {
-      print("🔥 Exception: $e");
-      print("📍 StackTrace: $stackTrace");
-
+    } catch (e) {
       return {'success': false, 'message': 'Something went wrong'};
     }
   }

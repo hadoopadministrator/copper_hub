@@ -114,7 +114,7 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                 Column(
                   children: [
                     Text(
-                      "Quantity: ${qty?.toStringAsFixed(2) ?? '0.00'} KG",
+                      "Quantity: ${qty?.toStringAsFixed(2) ?? '0'}",
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 4),

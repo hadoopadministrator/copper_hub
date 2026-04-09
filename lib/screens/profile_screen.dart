@@ -567,12 +567,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final result = await _apiService.deleteUserAccount(userId: _userId!);
 
       if (result['success'] == true) {
-        // clear login storage
-        await AuthStorage.logout();
-        // await CartDatabaseService.instance.clearCart();
+        await AuthStorage.clearAllLocalData();
 
         if (!mounted) return;
+
         _showMessage(result['message'] ?? "Account deleted successfully");
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (!mounted) return;
+
         Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.login,

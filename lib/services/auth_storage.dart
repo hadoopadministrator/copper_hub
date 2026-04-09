@@ -99,4 +99,23 @@ class AuthStorage {
     await prefs.remove(_keyEmail);
     await prefs.remove(_keyMobile);
   }
+
+  static Future<void> clearAllLocalData() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  // Login/session data
+  await prefs.remove(_keyIsLoggedIn);
+  await prefs.remove(_keyUserId);
+  await prefs.remove(_keyName);
+  await prefs.remove(_keyEmail);
+  await prefs.remove(_keyMobile);
+
+  // Remember me data
+  await prefs.remove(_keyRememberMe);
+  await prefs.remove(_keyRememberUser);
+
+  // Secure storage (password)
+  await SecureStorage.deletePassword();
+}
+
 }
