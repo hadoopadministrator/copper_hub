@@ -20,21 +20,18 @@ class OrderCard extends StatelessWidget {
   });
 
   bool get isBuy => type.toLowerCase() == "buy";
-
   bool get isPaid => status.toLowerCase() == "paid";
 
   @override
   Widget build(BuildContext context) {
-    /// BUY / SELL colors (same as LiveRates screen)
-    final Color primaryColor = isBuy
-        ? AppColors.orangeDark
-        : AppColors.greenDark;
+    final Color primaryColor =
+        isBuy ? AppColors.orangeDark : AppColors.greenDark;
 
-    final Color lightColor = isBuy
-        ? AppColors.orangeLight
-        : AppColors.greenLight;
+    final Color lightColor =
+        isBuy ? AppColors.orangeLight : AppColors.greenLight;
 
-    final IconData typeIcon = isBuy ? Icons.arrow_downward : Icons.arrow_upward;
+    final IconData typeIcon =
+        isBuy ? Icons.arrow_downward : Icons.arrow_upward;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -53,10 +50,8 @@ class OrderCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            /// TOP ROW
             Row(
               children: [
-                /// BUY / SELL ICON
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -68,7 +63,6 @@ class OrderCard extends StatelessWidget {
 
                 const SizedBox(width: 12),
 
-                /// TITLE + DATE
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,12 +87,9 @@ class OrderCard extends StatelessWidget {
                   ),
                 ),
 
-                /// STATUS BADGE
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: isPaid
                         ? AppColors.greenLight.withValues(alpha: 0.25)
@@ -120,12 +111,9 @@ class OrderCard extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
-
             const Divider(),
-
             const SizedBox(height: 16),
 
-            /// ORDER DETAILS ROW
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

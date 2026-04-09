@@ -15,10 +15,13 @@ class _OrderDetailsState extends State<OrderDetails> {
   bool shipmentLoading = true;
 
   Map<String, dynamic>? order;
+  Map<String, dynamic>? item;
+
   List<Map<String, dynamic>> shipments = [];
 
   String? error;
   int? orderId;
+  int? itemId;
 
   bool _isInitialized = false;
 
@@ -34,6 +37,7 @@ class _OrderDetailsState extends State<OrderDetails> {
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     orderId = args?['orderId'];
+    itemId = args?['itemId'];
 
     if (orderId != null) {
       fetchOrderDetails();
@@ -42,13 +46,24 @@ class _OrderDetailsState extends State<OrderDetails> {
   }
 
   Future<void> fetchOrderDetails() async {
-    // if (orderId == null) return;
     try {
       final result = await _apiService.getOrderById(orderId: orderId!);
+
       if (!mounted) return;
+
       if (result['success'] == true) {
+        final data = result['data'];
+        final items = List<Map<String, dynamic>>.from(data["Items"] ?? []);
+
+        ///
+        final selectedItem = items.firstWhere(
+          (i) => i["ItemId"] == itemId,
+          orElse: () => items.isNotEmpty ? items[0] : {},
+        );
+
         setState(() {
-          order = result['data'];
+          order = data;
+          item = selectedItem;
           isLoading = false;
         });
       } else {
@@ -85,7 +100,6 @@ class _OrderDetailsState extends State<OrderDetails> {
           result['data'] ?? [],
         );
 
-        // FILTER ONLY CURRENT ORDER SHIPMENTS
         final filteredShipments = allShipments.where((shipment) {
           return shipment['order_id'] == orderId;
         }).toList();
@@ -171,18 +185,13 @@ class _OrderDetailsState extends State<OrderDetails> {
     switch (status.toUpperCase()) {
       case "DELIVERED":
         return AppColors.greenDark;
-
       case "SHIPPED":
       case "IN_TRANSIT":
         return AppColors.orangeDark;
-
       case "AWB_CREATED":
         return AppColors.orangeLight;
-
       case "AWB_FAILED":
-        return Colors.red;
-
-      case "PENDING":
+        return AppColors.red;
       default:
         return AppColors.orangeLight;
     }
@@ -243,43 +252,46 @@ class _OrderDetailsState extends State<OrderDetails> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ListView(
                   children: [
-                    // Order Info Section
+                    /// ORDER INFO (USING ITEM)
                     sectionCard(
                       title: "Order Info",
                       children: [
-                        buildRow("Slab", order?["Slab"] ?? ""),
-                        buildRow("Type", order?["Type"] ?? ""),
-                        buildRow("Quantity", order?["Qty"]?.toString() ?? ""),
+                        buildRow("Slab", item?["Slab"] ?? ""),
+                        buildRow("Type", item?["Type"] ?? ""),
+                        buildRow("Quantity", item?["Qty"]?.toString() ?? ""),
                         buildRow(
                           "Price per KG",
-                          "₹${order?["PricePerKg"]?.toStringAsFixed(2) ?? "0"}",
+                          "₹${item?["PricePerKg"]?.toString() ?? "0"}",
                         ),
                         buildRow(
                           "Total",
-                          "₹${order?["Total"]?.toStringAsFixed(2) ?? "0"}",
+                          "₹${item?["Total"]?.toString() ?? "0"}",
                           valueColor: AppColors.orangeDark,
                         ),
+
+                        if (item?["Type"] == "SELL")
+                          buildRow(
+                            "Remaining Qty",
+                            item?["RemainingQty"]?.toString() ?? "",
+                          ),
                       ],
                     ),
 
-                    // Payment Info Section
+                    /// PAYMENT INFO (ORDER LEVEL)
                     sectionCard(
                       title: "Payment Info",
                       children: [
-                        buildRow(
-                          "GST",
-                          "₹${order?["Gst"]?.toStringAsFixed(2) ?? "0"}",
-                        ),
+                        buildRow("GST", "₹${item?["Gst"]?.toString() ?? "0"}"),
                         buildRow(
                           "Courier",
-                          "₹${order?["Courier"]?.toStringAsFixed(2) ?? "0"}",
+                          "₹${item?["Courier"]?.toString() ?? "0"}",
                         ),
                         buildRow(
                           "Payment Status",
                           order?["PaymentStatus"] ?? "",
                           valueColor: order?["PaymentStatus"] == "Paid"
-                              ? Colors.green
-                              : Colors.red,
+                              ? AppColors.greenDark
+                              : AppColors.red,
                         ),
                         buildRow(
                           "Razorpay ID",
@@ -289,7 +301,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                       ],
                     ),
 
-                    // Delivery Info Section
+                    /// DELIVERY INFO
                     sectionCard(
                       title: "Delivery Info",
                       children: [
@@ -306,7 +318,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                       ],
                     ),
 
-                    /// SHIPMENT INFO
+                    /// SHIPMENT SAME
                     buildShipmentSection(),
                   ],
                 ),

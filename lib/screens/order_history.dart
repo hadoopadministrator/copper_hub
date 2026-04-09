@@ -14,7 +14,10 @@ class OrderHistory extends StatefulWidget {
 
 class _OrderHistoryState extends State<OrderHistory> {
   int selectedTab = 0;
+
+  /// FLATTENED LIST (IMPORTANT)
   List<Map<String, dynamic>> orders = [];
+
   bool isLoading = true;
 
   @override
@@ -31,11 +34,25 @@ class _OrderHistoryState extends State<OrderHistory> {
     if (!mounted) return;
 
     if (result['success'] == true) {
+      final List data = result['data'];
+
+      List<Map<String, dynamic>> flattened = [];
+
+      for (var order in data) {
+        final items = order["Items"] ?? [];
+
+        for (var item in items) {
+          flattened.add({
+            ...item,
+            "OrderId": order["OrderId"],
+            "OrderDateTime": order["OrderDateTime"],
+            "PaymentStatus": order["PaymentStatus"],
+          });
+        }
+      }
+
       setState(() {
-        // Convert dynamic list to Map<String, dynamic>
-        orders = (result['data'] as List)
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
+        orders = flattened;
         isLoading = false;
       });
     } else {
@@ -43,22 +60,20 @@ class _OrderHistoryState extends State<OrderHistory> {
         orders = [];
         isLoading = false;
       });
-      // Optionally show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Failed to fetch orders')),
-      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'] ?? 'Failed')));
     }
   }
 
-  /// FILTERED LIST
   List<Map<String, dynamic>> get filteredOrders {
     return orders.where((order) {
-      final type = (order["Type"] ?? "").toString().trim().toUpperCase();
+      final type = (order["Type"] ?? "").toString().toUpperCase();
       return selectedTab == 0 ? type == "BUY" : type == "SELL";
     }).toList();
   }
 
-  /// MAIN UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,10 +83,7 @@ class _OrderHistoryState extends State<OrderHistory> {
             ? const Center(child: CircularProgressIndicator())
             : Column(
                 children: [
-                  /// BUY / SELL SWITCH
                   buildTabs(),
-
-                  /// LIST
                   Expanded(child: buildOrderList()),
                 ],
               ),
@@ -89,14 +101,9 @@ class _OrderHistoryState extends State<OrderHistory> {
       ),
       child: Row(
         children: [
-          /// BUY TAB
           Expanded(
             child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedTab = 0;
-                });
-              },
+              onTap: () => setState(() => selectedTab = 0),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
@@ -113,22 +120,15 @@ class _OrderHistoryState extends State<OrderHistory> {
                           ? AppColors.white
                           : AppColors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                 ),
               ),
             ),
           ),
-
-          /// SELL TAB
           Expanded(
             child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedTab = 1;
-                });
-              },
+              onTap: () => setState(() => selectedTab = 1),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
@@ -145,7 +145,6 @@ class _OrderHistoryState extends State<OrderHistory> {
                           ? AppColors.white
                           : AppColors.black,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                 ),
@@ -157,28 +156,11 @@ class _OrderHistoryState extends State<OrderHistory> {
     );
   }
 
-  /// EMPTY STATE
-  Widget buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.receipt_long, size: 60, color: Colors.grey.shade400),
-          const SizedBox(height: 10),
-          Text(
-            selectedTab == 0 ? "No Copper Bought Yet" : "No Copper Sold Yet",
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// ORDER LIST
   Widget buildOrderList() {
     if (filteredOrders.isEmpty) {
-      return buildEmptyState();
+      return const Center(child: Text("No Data"));
     }
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: filteredOrders.length,
@@ -190,15 +172,18 @@ class _OrderHistoryState extends State<OrderHistory> {
             Navigator.pushNamed(
               context,
               AppRoutes.orderDetails,
-              arguments: {'orderId': order["Id"]},
+              arguments: {
+                'orderId': order["OrderId"],
+                'itemId': order["ItemId"],
+              },
             );
           },
           child: OrderCard(
             date: order["OrderDateTime"] ?? "",
             slab: order["Slab"] ?? "",
             type: order["Type"] ?? "",
-            quantity: order["Qty"]?.toString() ?? "",
-            total: "₹${(order["Total"] as num?)?.toDouble().toStringAsFixed(2) ?? "0.00"}",
+            quantity: order["Qty"].toString(),
+            total: "₹${order["Total"]}",
             status: order["PaymentStatus"] ?? "",
           ),
         );
