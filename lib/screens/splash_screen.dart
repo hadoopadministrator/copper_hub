@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkLoginStatus() async {
     final isLoggedIn = await AuthStorage.isLoggedIn();
 
-    await Future.delayed(const Duration(seconds: 3)); // splash delay
+    await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
 
@@ -33,27 +33,27 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/logo/logo.png',
-                  width: 280,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Bridging Global Trade & Wealth',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-              ],
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/logo/logo.png',
+                width: 280,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Bridging Global Trade & Wealth',
+                style: textTheme.bodySmall,
+              ),
+              const SizedBox(height: 24),
+              const CircularProgressIndicator(),
+            ],
           ),
         ),
       ),

@@ -24,6 +24,7 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final Color primaryColor =
         isBuy ? AppColors.orangeDark : AppColors.greenDark;
 
@@ -33,19 +34,7 @@ class OrderCard extends StatelessWidget {
     final IconData typeIcon =
         isBuy ? Icons.arrow_downward : Icons.arrow_upward;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -55,7 +44,7 @@ class OrderCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: lightColor.withValues(alpha: 0.25),
+                    color: lightColor.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(typeIcon, color: primaryColor, size: 20),
@@ -69,19 +58,15 @@ class OrderCard extends StatelessWidget {
                     children: [
                       Text(
                         isBuy ? "Copper Bought" : "Copper Sold",
-                        style: TextStyle(
-                          fontSize: 16,
+                        style: textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: primaryColor,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 4),
                       Text(
                         date,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                        ),
+                        style: textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -92,18 +77,17 @@ class OrderCard extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: isPaid
-                        ? AppColors.greenLight.withValues(alpha: 0.25)
-                        : AppColors.orangeLight.withValues(alpha: 0.25),
+                        ? AppColors.greenLight.withValues(alpha: 0.2)
+                        : AppColors.orangeLight.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     status,
-                    style: TextStyle(
+                    style: textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
                       color: isPaid
                           ? AppColors.greenDark
                           : AppColors.orangeDark,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -112,7 +96,7 @@ class OrderCard extends StatelessWidget {
 
             const SizedBox(height: 16),
             const Divider(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,24 +127,16 @@ class BuildItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey,
-          ),
-        ),
+        Text(title, style: textTheme.bodySmall),
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
-            fontSize: isAmount ? 16 : 15,
-            fontWeight: FontWeight.w700,
-            color: AppColors.black,
+          style: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],

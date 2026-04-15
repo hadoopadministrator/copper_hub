@@ -92,11 +92,12 @@ class _OrderHistoryState extends State<OrderHistory> {
   }
 
   Widget buildTabs() {
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: AppColors.border,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -115,12 +116,12 @@ class _OrderHistoryState extends State<OrderHistory> {
                 child: Center(
                   child: Text(
                     "BUY",
-                    style: TextStyle(
-                      color: selectedTab == 0
-                          ? AppColors.white
-                          : AppColors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
+                   style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: selectedTab == 0
+                        ? AppColors.white
+                        : AppColors.textPrimary,
+                  ),
                   ),
                 ),
               ),
@@ -140,12 +141,12 @@ class _OrderHistoryState extends State<OrderHistory> {
                 child: Center(
                   child: Text(
                     "SELL",
-                    style: TextStyle(
-                      color: selectedTab == 1
-                          ? AppColors.white
-                          : AppColors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
+                   style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: selectedTab == 1
+                        ? AppColors.white
+                        : AppColors.textPrimary,
+                  ),
                   ),
                 ),
               ),
@@ -158,12 +159,16 @@ class _OrderHistoryState extends State<OrderHistory> {
 
   Widget buildOrderList() {
     if (filteredOrders.isEmpty) {
-      return const Center(child: Text("No Data"));
+      return  Center(child:Text(
+        "No orders found",
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return ListView.separated(
+       padding: const EdgeInsets.symmetric(vertical: 12),
       itemCount: filteredOrders.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final order = filteredOrders[index];
 

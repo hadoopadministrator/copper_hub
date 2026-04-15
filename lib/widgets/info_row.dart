@@ -13,9 +13,11 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+     final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return Row(
       children: [
-        Icon(icon, color: Colors.grey),
+        Icon(icon),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -23,13 +25,12 @@ class InfoRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+               style: textTheme.bodySmall,
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
               ),

@@ -7,29 +7,27 @@ class SummaryRowCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xfff8f9fa),
+            color: theme.inputDecorationTheme.fillColor,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey, width: 1),
+            border: Border.all(color: theme.dividerColor),
           ),
           child: Text(
             value,
-            style: const TextStyle(color: Colors.black, fontSize: 16),
+           style: textTheme.bodyLarge,
           ),
         ),
       ],

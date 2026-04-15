@@ -2,7 +2,6 @@ import 'package:copper_hub/services/api_service.dart';
 import 'package:copper_hub/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:copper_hub/routes/app_routes.dart';
-import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:flutter/services.dart';
@@ -71,6 +70,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: SafeArea(
         child: GestureDetector(
@@ -78,12 +79,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           onTap: () => FocusScope.of(context).unfocus(),
           child: Center(
             child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              color: AppColors.white,
-              elevation: 8.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-              ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Form(
@@ -96,22 +91,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         alignment: Alignment.center,
                         child: Text(
                           'Forgot Password?',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: textTheme.titleLarge,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Align(
                         alignment: Alignment.center,
                         child: Text(
                           'Enter your registered mobile number to receive OTP',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                          style: textTheme.bodySmall,
                         ),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       TextFormField(
                         controller: _mobileController,
                         keyboardType: TextInputType.number,
@@ -121,10 +113,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(10),
                         ],
-                        cursorColor: const Color(0xFF555555),
                         decoration: AppDecorations.textField(
                           label: 'Mobile Number',
-                           counterText: '',
+                          counterText: '',
                         ),
                         validator: Validators.mobile,
                       ),
@@ -139,18 +130,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Remember your password?',
-                            style: TextStyle(color: Colors.grey[700]),
-                          ),
+                          Text('Remember your password?'),
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: Text(
-                              'Login',
-                              style: TextStyle(color: Colors.blue),
-                            ),
+                            child: Text('Login'),
                           ),
                         ],
                       ),

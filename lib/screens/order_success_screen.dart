@@ -54,6 +54,8 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+  final textTheme = theme.textTheme;
     final bool isSell = type == "SELL";
 
     return Scaffold(
@@ -85,10 +87,9 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                 isSell
                     ? "Sell Order Placed Successfully"
                     : "Buy Order Placed Successfully",
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
                 textAlign: TextAlign.center,
               ),
 
@@ -100,10 +101,9 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                   children: [
                     Text(
                       "Order ID: $orderId",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                     ),
                     const SizedBox(height: 8),
                   ],
@@ -115,12 +115,12 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                   children: [
                     Text(
                       "Quantity: ${qty?.toStringAsFixed(2) ?? '0'}",
-                      style: const TextStyle(fontSize: 16),
+                       style: textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       "Total Amount: ₹${price?.toStringAsFixed(2) ?? '0.00'}",
-                      style: const TextStyle(fontSize: 16),
+                       style: textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 8),
                   ],
@@ -131,11 +131,12 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                   children: [
                     Text(
                       "Status: $paymentStatus",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: isSell ? Colors.orange : Colors.green,
-                        fontWeight: FontWeight.w500,
-                      ),
+                     style: textTheme.bodyMedium?.copyWith(
+                      color: isSell
+                          ? AppColors.greenDark
+                          : AppColors.orangeDark,
+                      fontWeight: FontWeight.w500,
+                    ),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -146,7 +147,9 @@ class _OrderSuccessScreenState extends State<OrderSuccessScreen> {
                 isSell
                     ? "Your sell order is successful. Amount will be credited once processed."
                     : "Your buy order is successful. You can track delivery in Order History.",
-                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                style: textTheme.bodyMedium?.copyWith(
+                color: textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              ),
                 textAlign: TextAlign.center,
               ),
 

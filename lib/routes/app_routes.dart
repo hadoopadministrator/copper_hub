@@ -18,7 +18,7 @@ import 'package:copper_hub/screens/verify_otp_screen.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {
-  AppRoutes._(); // prevents instantiation
+  AppRoutes._();
 
   // Route names
   static const String splash = '/';
@@ -38,7 +38,6 @@ class AppRoutes {
   static const String verifyOTP = '/verifyOTP';
   static const String resetPassword = '/resetPassword';
   static const String myHoldings = '/myHoldings';
-
 
   // Route map
   static Map<String, WidgetBuilder> routes = {

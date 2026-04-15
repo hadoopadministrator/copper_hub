@@ -44,15 +44,8 @@ class AboutUsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text("About Us")),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+          padding: const EdgeInsets.symmetric( vertical: 30),
           child: Card(
-            // color: Color(0xff343a40),
-            color: AppColors.white,
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: AppColors.border),
-            ),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -63,14 +56,14 @@ class AboutUsScreen extends StatelessWidget {
                     value: address,
                     onTap: () => _launchMap(address),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   InfoRow(
                     icon: Icons.email,
                     label: "Email Address",
                     value: email,
                     onTap: () => _launchEmail(email),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   InfoRow(
                     icon: Icons.phone,
                     label: "Phone",
@@ -103,11 +96,12 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -118,28 +112,19 @@ class InfoRow extends StatelessWidget {
                 color: AppColors.orangeDark.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: AppColors.orangeDark, size: 22),
+              child: Icon(icon, color: AppColors.orangeDark),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  Text(label, style: textTheme.bodySmall),
                   const SizedBox(height: 6),
                   Text(
                     value,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
                       decoration: TextDecoration.underline,
                     ),
                   ),

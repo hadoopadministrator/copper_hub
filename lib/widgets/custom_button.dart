@@ -7,8 +7,8 @@ class CustomButton extends StatelessWidget {
   final bool isLoading;
   final double? width;
   final EdgeInsetsGeometry? padding;
-  final Color backgroundColor;
-  final Color foregroundColor;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   const CustomButton({
     super.key,
@@ -17,8 +17,8 @@ class CustomButton extends StatelessWidget {
     this.isLoading = false,
     this.width,
     this.padding,
-    this.backgroundColor = AppColors.orangeDark,
-    this.foregroundColor = AppColors.black,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   @override
@@ -33,7 +33,7 @@ class CustomButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),
-          backgroundColor: isDisabled ? Colors.grey : backgroundColor,
+          backgroundColor: isDisabled ? AppColors.disabled : backgroundColor,
           foregroundColor: foregroundColor,
         ),
         onPressed: isDisabled ? null : onPressed,
@@ -41,14 +41,9 @@ class CustomButton extends StatelessWidget {
             ? SizedBox(
                 height: 22,
                 width: 22,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: isDisabled
-                      ? AppColors.black.withValues(alpha: 0.38)
-                      : foregroundColor,
-                ),
+                child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(text, style: const TextStyle(fontSize: 18)),
+            : Text(text),
       ),
     );
   }

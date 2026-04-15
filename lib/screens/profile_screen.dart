@@ -268,6 +268,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -293,227 +294,216 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Form(
             key: _formKey,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               children: [
-                // Header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 48,
-                        backgroundColor: Colors.amber.shade100,
-                        child: Text(
-                          fullNameController.text.isNotEmpty
-                              ? fullNameController.text.trim()[0].toUpperCase()
-                              : '',
-                          style: const TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xffF9B236),
+                /// HEADER CARD
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CircleAvatar(
+                          radius: 48,
+                          backgroundColor: AppColors.orangeDark.withValues(alpha: 0.2),
+                          child: Text(
+                            fullNameController.text.isNotEmpty
+                                ? fullNameController.text
+                                      .trim()[0]
+                                      .toUpperCase()
+                                : '',
+                            style: textTheme.titleLarge?.copyWith(
+                              fontSize: 32,
+                              color: AppColors.orangeDark,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        fullNameController.text,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Text(
+                            fullNameController.text,
+                            style: textTheme.titleLarge,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildField(
-                        icon: Icons.person_outline,
-                        label: 'Full Name',
-                        value: fullNameController.text,
-                        controller: fullNameController,
-                        validator: Validators.fullName,
-                      ),
-                      _buildField(
-                        icon: Icons.email_outlined,
-                        label: 'Email',
-                        value: emailController.text,
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: Validators.email,
-                      ),
-                      _buildField(
-                        icon: Icons.phone_outlined,
-                        label: 'Mobile',
-                        value: mobileController.text,
-                        controller: mobileController,
-                        keyboardType: TextInputType.phone,
-                        validator: Validators.mobile,
-                      ),
-                      _buildField(
-                        icon: Icons.location_on_outlined,
-                        label: 'Address',
-                        value: addressController.text,
-                        controller: addressController,
-                        validator: Validators.address,
-                      ),
-                      _buildField(
-                        icon: Icons.pin_drop_outlined,
-                        label: 'Pincode',
-                        value: pincodeController.text,
-                        controller: pincodeController,
-                        textInputAction: TextInputAction.done,
-                        keyboardType: TextInputType.number,
-                        validator: Validators.pincode,
-                      ),
-                      _buildField(
-                        icon: Icons.place_outlined,
-                        label: 'Landmark',
-                        value: landmarkController.text,
-                        controller: landmarkController,
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-                          if (text.isEmpty) return null;
-                          return Validators.landmark(text);
-                        },
-                      ),
-                      _buildField(
-                        icon: Icons.receipt_long_outlined,
-                        label: 'GST Number',
-                        value: gstController.text,
-                        controller: gstController,
-                        textInputAction: TextInputAction.done,
-                        validator: (value) {
-                          final text = value?.trim() ?? '';
-                          if (text.isEmpty) return null;
-                          return Validators.gst(text);
-                        },
-                        autoUpperCase: true,
-                      ),
-                      const SizedBox(height: 16),
 
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Bank Details",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
+                /// 🔹 DETAILS CARD
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildField(
+                          icon: Icons.person_outline,
+                          label: 'Full Name',
+                          value: fullNameController.text,
+                          controller: fullNameController,
+                          validator: Validators.fullName,
                         ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      _buildField(
-                        icon: Icons.account_circle,
-                        label: 'Account Holder Name',
-                        value: accountHolderController.text,
-                        controller: accountHolderController,
-                        validator: (value) {
-                          if (!_hasAnyBankDetailFilled()) return null;
-                          return Validators.accountHolder(value?.trim() ?? '');
-                        },
-                      ),
-
-                      _buildField(
-                        icon: Icons.credit_card,
-                        label: 'Account Number',
-                        value: accountNumberController.text,
-                        controller: accountNumberController,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (!_hasAnyBankDetailFilled()) return null;
-                          return Validators.accountNumber(value?.trim() ?? '');
-                        },
-                      ),
-
-                      _buildField(
-                        icon: Icons.credit_card,
-                        label: 'Confirm Account Number',
-                        value: confirmAccountNumberController.text,
-                        controller: confirmAccountNumberController,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (!_hasAnyBankDetailFilled()) return null;
-                          return Validators.confirmAccountNumber(
-                            value?.trim() ?? '',
-                            accountNumberController.text.trim(),
-                          );
-                        },
-                      ),
-
-                      _buildField(
-                        icon: Icons.account_balance,
-                        label: 'IFSC Code',
-                        value: ifscController.text,
-                        controller: ifscController,
-                        validator: (value) {
-                          if (!_hasAnyBankDetailFilled()) return null;
-                          return Validators.ifsc(value?.trim() ?? '');
-                        },
-                        autoUpperCase: true,
-                      ),
-
-                      _buildField(
-                        icon: Icons.account_balance_wallet,
-                        label: 'Bank Name',
-                        value: bankNameController.text,
-                        controller: bankNameController,
-                        textInputAction: TextInputAction.done,
-                        validator: (value) {
-                          if (!_hasAnyBankDetailFilled()) return null;
-                          return Validators.bankName(value?.trim() ?? '');
-                        },
-                      ),
-
-                      // _buildField(
-                      //   icon: Icons.qr_code,
-                      //   label: 'UPI ID',
-                      //   value: upiController.text,
-                      //   controller: upiController,
-                      // ),
-                      if (isEditing) ...[
-                        const SizedBox(height: 8),
-                        // AppColors.greenDark,
-                        CustomButton(
-                          text: 'Save Changes',
-                          backgroundColor: AppColors.orangeDark,
-                          foregroundColor: AppColors.white,
-                          width: double.infinity,
-                          isLoading: _isLoading,
-                          onPressed: (_isFormValid && !_isLoading)
-                              ? _updateProfile
-                              : null,
+                        _buildField(
+                          icon: Icons.email_outlined,
+                          label: 'Email',
+                          value: emailController.text,
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: Validators.email,
+                        ),
+                        _buildField(
+                          icon: Icons.phone_outlined,
+                          label: 'Mobile',
+                          value: mobileController.text,
+                          controller: mobileController,
+                          keyboardType: TextInputType.phone,
+                          validator: Validators.mobile,
+                        ),
+                        _buildField(
+                          icon: Icons.location_on_outlined,
+                          label: 'Address',
+                          value: addressController.text,
+                          controller: addressController,
+                          validator: Validators.address,
+                        ),
+                        _buildField(
+                          icon: Icons.pin_drop_outlined,
+                          label: 'Pincode',
+                          value: pincodeController.text,
+                          controller: pincodeController,
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.number,
+                          validator: Validators.pincode,
+                        ),
+                        _buildField(
+                          icon: Icons.place_outlined,
+                          label: 'Landmark',
+                          value: landmarkController.text,
+                          controller: landmarkController,
+                          validator: (value) {
+                            final text = value?.trim() ?? '';
+                            if (text.isEmpty) return null;
+                            return Validators.landmark(text);
+                          },
+                        ),
+                        _buildField(
+                          icon: Icons.receipt_long_outlined,
+                          label: 'GST Number',
+                          value: gstController.text,
+                          controller: gstController,
+                          textInputAction: TextInputAction.done,
+                          validator: (value) {
+                            final text = value?.trim() ?? '';
+                            if (text.isEmpty) return null;
+                            return Validators.gst(text);
+                          },
+                          autoUpperCase: true,
                         ),
                         const SizedBox(height: 16),
 
-                        // DELETE ACCOUNT BUTTON
-                        CustomButton(
-                          text: 'Delete Account',
-                          backgroundColor: Colors.red,
-                          foregroundColor: AppColors.white,
-                          width: double.infinity,
-                          onPressed: _showDeleteDialog,
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Bank Details",
+                            style: textTheme.titleLarge,
+                          ),
                         ),
+
+                        const SizedBox(height: 12),
+
+                        _buildField(
+                          icon: Icons.account_circle,
+                          label: 'Account Holder Name',
+                          value: accountHolderController.text,
+                          controller: accountHolderController,
+                          validator: (value) {
+                            if (!_hasAnyBankDetailFilled()) return null;
+                            return Validators.accountHolder(
+                              value?.trim() ?? '',
+                            );
+                          },
+                        ),
+
+                        _buildField(
+                          icon: Icons.credit_card,
+                          label: 'Account Number',
+                          value: accountNumberController.text,
+                          controller: accountNumberController,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (!_hasAnyBankDetailFilled()) return null;
+                            return Validators.accountNumber(
+                              value?.trim() ?? '',
+                            );
+                          },
+                        ),
+
+                        _buildField(
+                          icon: Icons.credit_card,
+                          label: 'Confirm Account Number',
+                          value: confirmAccountNumberController.text,
+                          controller: confirmAccountNumberController,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (!_hasAnyBankDetailFilled()) return null;
+                            return Validators.confirmAccountNumber(
+                              value?.trim() ?? '',
+                              accountNumberController.text.trim(),
+                            );
+                          },
+                        ),
+
+                        _buildField(
+                          icon: Icons.account_balance,
+                          label: 'IFSC Code',
+                          value: ifscController.text,
+                          controller: ifscController,
+                          validator: (value) {
+                            if (!_hasAnyBankDetailFilled()) return null;
+                            return Validators.ifsc(value?.trim() ?? '');
+                          },
+                          autoUpperCase: true,
+                        ),
+
+                        _buildField(
+                          icon: Icons.account_balance_wallet,
+                          label: 'Bank Name',
+                          value: bankNameController.text,
+                          controller: bankNameController,
+                          textInputAction: TextInputAction.done,
+                          validator: (value) {
+                            if (!_hasAnyBankDetailFilled()) return null;
+                            return Validators.bankName(value?.trim() ?? '');
+                          },
+                        ),
+                        if (isEditing) ...[
+                          const SizedBox(height: 8),
+                          // AppColors.greenDark,
+                          CustomButton(
+                            text: 'Save Changes',
+                            width: double.infinity,
+                            isLoading: _isLoading,
+                            onPressed: (_isFormValid && !_isLoading)
+                                ? _updateProfile
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // DELETE ACCOUNT BUTTON
+                          CustomButton(
+                            text: 'Delete Account',
+                            backgroundColor: Colors.red,
+                            width: double.infinity,
+                            onPressed: _showDeleteDialog,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -530,7 +520,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.white,
           title: const Text("Delete Account"),
           content: const Text(
             "Are you sure you want to delete your account? This action cannot be undone.",

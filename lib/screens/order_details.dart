@@ -123,21 +123,16 @@ class _OrderDetailsState extends State<OrderDetails> {
   }
 
   Widget sectionCard({required String title, required List<Widget> children}) {
+    final textTheme = Theme.of(context).textTheme;
     return Card(
-      color: AppColors.white,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
+            Text(title, style: textTheme.titleLarge),
+            const SizedBox(height: 12),
             ...children,
           ],
         ),
@@ -151,27 +146,31 @@ class _OrderDetailsState extends State<OrderDetails> {
     Color? valueColor,
     bool isMultiline = false,
   }) {
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: isMultiline
             ? CrossAxisAlignment.start
             : CrossAxisAlignment.center,
         children: [
           SizedBox(
-            width: 140,
+            width: 130,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                fontSize: 16,
-                color: valueColor ?? AppColors.black,
-                fontWeight: valueColor != null ? FontWeight.bold : null,
+              style: textTheme.bodyMedium?.copyWith(
+                color: valueColor ?? AppColors.textPrimary,
+                fontWeight: valueColor != null
+                    ? FontWeight.w600
+                    : FontWeight.w400,
               ),
               textAlign: TextAlign.right,
             ),
@@ -201,7 +200,10 @@ class _OrderDetailsState extends State<OrderDetails> {
     if (shipmentLoading) {
       return sectionCard(
         title: "Shipment Details",
-        children: const [Center(child: CircularProgressIndicator())],
+        children: const [
+          SizedBox(height: 20),
+          Center(child: CircularProgressIndicator()),
+        ],
       );
     }
 
@@ -227,7 +229,9 @@ class _OrderDetailsState extends State<OrderDetails> {
             ),
             buildRow("Courier", shipment["courier_name"] ?? "-"),
             buildRow("AWB", shipment["awb"] ?? "-"),
+            const SizedBox(height: 8),
             const Divider(),
+            const SizedBox(height: 8),
           ],
         );
       }).toList(),
@@ -245,83 +249,83 @@ class _OrderDetailsState extends State<OrderDetails> {
             ? Center(
                 child: Text(
                   error!,
-                  style: const TextStyle(fontSize: 16, color: Colors.red),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.red),
                 ),
               )
-            : Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ListView(
-                  children: [
-                    /// ORDER INFO (USING ITEM)
-                    sectionCard(
-                      title: "Order Info",
-                      children: [
-                        buildRow("Slab", item?["Slab"] ?? ""),
-                        buildRow("Type", item?["Type"] ?? ""),
-                        buildRow("Quantity", item?["Qty"]?.toString() ?? ""),
-                        buildRow(
-                          "Price per KG",
-                          "₹${item?["PricePerKg"]?.toString() ?? "0"}",
-                        ),
-                        buildRow(
-                          "Total",
-                          "₹${item?["Total"]?.toString() ?? "0"}",
-                          valueColor: AppColors.orangeDark,
-                        ),
+            : ListView(
+               padding: const EdgeInsets.all(16),
+                children: [
+                  /// ORDER INFO (USING ITEM)
+                  sectionCard(
+                    title: "Order Info",
+                    children: [
+                      buildRow("Slab", item?["Slab"] ?? ""),
+                      buildRow("Type", item?["Type"] ?? ""),
+                      buildRow("Quantity", item?["Qty"]?.toString() ?? ""),
+                      buildRow(
+                        "Price per KG",
+                        "₹${item?["PricePerKg"]?.toString() ?? "0"}",
+                      ),
+                      buildRow(
+                        "Total",
+                        "₹${item?["Total"]?.toString() ?? "0"}",
+                        valueColor: AppColors.orangeDark,
+                      ),
 
-                        if (item?["Type"] == "SELL")
-                          buildRow(
-                            "Remaining Qty",
-                            item?["RemainingQty"]?.toString() ?? "",
-                          ),
-                      ],
-                    ),
+                      if (item?["Type"] == "SELL")
+                        buildRow(
+                          "Remaining Qty",
+                          item?["RemainingQty"]?.toString() ?? "",
+                        ),
+                    ],
+                  ),
 
-                    /// PAYMENT INFO (ORDER LEVEL)
-                    sectionCard(
-                      title: "Payment Info",
-                      children: [
-                        buildRow("GST", "₹${item?["Gst"]?.toString() ?? "0"}"),
-                        buildRow(
-                          "Courier",
-                          "₹${item?["Courier"]?.toString() ?? "0"}",
-                        ),
-                        buildRow(
-                          "Payment Status",
-                          order?["PaymentStatus"] ?? "",
-                          valueColor: order?["PaymentStatus"] == "Paid"
-                              ? AppColors.greenDark
-                              : AppColors.red,
-                        ),
-                        buildRow(
-                          "Razorpay ID",
-                          order?["RazorpayPaymentId"] ?? "",
-                          isMultiline: true,
-                        ),
-                      ],
-                    ),
+                  /// PAYMENT INFO (ORDER LEVEL)
+                  sectionCard(
+                    title: "Payment Info",
+                    children: [
+                      buildRow("GST", "₹${item?["Gst"]?.toString() ?? "0"}"),
+                      buildRow(
+                        "Courier",
+                        "₹${item?["Courier"]?.toString() ?? "0"}",
+                      ),
+                      buildRow(
+                        "Payment Status",
+                        order?["PaymentStatus"] ?? "",
+                        valueColor: order?["PaymentStatus"] == "Paid"
+                            ? AppColors.greenDark
+                            : AppColors.red,
+                      ),
+                      buildRow(
+                        "Razorpay ID",
+                        order?["RazorpayPaymentId"] ?? "",
+                        isMultiline: true,
+                      ),
+                    ],
+                  ),
 
-                    /// DELIVERY INFO
-                    sectionCard(
-                      title: "Delivery Info",
-                      children: [
-                        buildRow(
-                          "Delivery Option",
-                          order?["DeliveryOption"] ?? "",
-                        ),
-                        buildRow(
-                          "Address",
-                          order?["Address"] ?? "",
-                          isMultiline: true,
-                        ),
-                        buildRow("Order Date", order?["OrderDateTime"] ?? ""),
-                      ],
-                    ),
+                  /// DELIVERY INFO
+                  sectionCard(
+                    title: "Delivery Info",
+                    children: [
+                      buildRow(
+                        "Delivery Option",
+                        order?["DeliveryOption"] ?? "",
+                      ),
+                      buildRow(
+                        "Address",
+                        order?["Address"] ?? "",
+                        isMultiline: true,
+                      ),
+                      buildRow("Order Date", order?["OrderDateTime"] ?? ""),
+                    ],
+                  ),
 
-                    /// SHIPMENT SAME
-                    buildShipmentSection(),
-                  ],
-                ),
+                  /// SHIPMENT SAME
+                  buildShipmentSection(),
+                ],
               ),
       ),
     );

@@ -11,7 +11,6 @@ class DrawerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: AppColors.background,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -24,12 +23,11 @@ class DrawerWidget extends StatelessWidget {
           ),
 
           /// HOME / LIVE PRICES
-          ListTile(
-            leading: const Icon(
-              Icons.show_chart_rounded,
-              color: AppColors.orangeDark,
-            ),
-            title: const Text('Live Prices', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.show_chart_rounded,
+            title: 'Live Prices',
+            color: AppColors.orangeDark,
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamedAndRemoveUntil(
@@ -41,12 +39,11 @@ class DrawerWidget extends StatelessWidget {
           ),
 
           /// MY HOLDINGS
-          ListTile(
-            leading: const Icon(
-              Icons.account_balance_wallet_rounded,
-              color: AppColors.greenDark,
-            ),
-            title: const Text('My Holdings', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.account_balance_wallet_rounded,
+            title: 'My Holdings',
+            color: AppColors.greenDark,
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRoutes.myHoldings);
@@ -54,12 +51,10 @@ class DrawerWidget extends StatelessWidget {
           ),
 
           /// ORDER HISTORY
-          ListTile(
-            leading: const Icon(
-              Icons.receipt_long_rounded,
-              color: AppColors.black,
-            ),
-            title: const Text('Order History', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.receipt_long_rounded,
+            title: 'Order History',
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRoutes.orderHistory);
@@ -67,24 +62,22 @@ class DrawerWidget extends StatelessWidget {
           ),
 
           /// PROFILE
-          ListTile(
-            leading: const Icon(
-              Icons.person_outline_rounded,
-              color: AppColors.black,
-            ),
-            title: const Text('Profile', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.person_outline_rounded,
+            title: 'Profile',
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRoutes.profile);
             },
           ),
-
           const Divider(),
 
           /// VISIT WEBSITE
-          ListTile(
-            leading: const Icon(Icons.language_rounded, color: AppColors.black),
-            title: const Text('Visit Website', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.language_rounded,
+            title: 'Visit Website',
             onTap: () => _openUrl(
               context,
               "https://wealthbridgeimpex.com/",
@@ -93,12 +86,10 @@ class DrawerWidget extends StatelessWidget {
           ),
 
           /// CONTACT US
-          ListTile(
-            leading: const Icon(
-              Icons.support_agent_rounded,
-              color: AppColors.black,
-            ),
-            title: const Text('Contact Us', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.support_agent_rounded,
+            title: 'Contact Us',
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRoutes.contactUs);
@@ -106,12 +97,10 @@ class DrawerWidget extends StatelessWidget {
           ),
 
           /// ABOUT US
-          ListTile(
-            leading: const Icon(
-              Icons.info_outline_rounded,
-              color: AppColors.black,
-            ),
-            title: const Text('About Us', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.info_outline_rounded,
+            title: 'About Us',
             onTap: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRoutes.aboutUs);
@@ -119,12 +108,10 @@ class DrawerWidget extends StatelessWidget {
           ),
 
           /// PRIVACY POLICY
-          ListTile(
-            leading: const Icon(
-              Icons.privacy_tip_outlined,
-              color: AppColors.black,
-            ),
-            title: const Text('Privacy Policy', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.privacy_tip_outlined,
+            title: 'Privacy Policy',
             onTap: () => _openUrl(
               context,
               "https://wealthbridgeimpex.com/privacy_policy.html",
@@ -135,9 +122,10 @@ class DrawerWidget extends StatelessWidget {
           const Divider(),
 
           /// SHARE APP
-          ListTile(
-            leading: const Icon(Icons.share_outlined, color: AppColors.black),
-            title: const Text('Share App', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.share_outlined,
+            title: 'Share App',
             onTap: () async {
               Navigator.pop(context);
 
@@ -154,12 +142,10 @@ class DrawerWidget extends StatelessWidget {
           ),
 
           /// RATE APP
-          ListTile(
-            leading: const Icon(
-              Icons.star_border_rounded,
-              color: AppColors.black,
-            ),
-            title: const Text('Rate App', style: TextStyle(fontSize: 18)),
+          _tile(
+            context,
+            icon: Icons.star_border_rounded,
+            title: 'Rate App',
             onTap: () => _openUrl(
               context,
               "https://play.google.com/store/apps/details?id=com.infisoft.copperhub",
@@ -170,16 +156,30 @@ class DrawerWidget extends StatelessWidget {
           const Divider(),
 
           /// LOGOUT
-          ListTile(
-            leading: const Icon(Icons.logout_rounded, color: Colors.red),
-            title: const Text(
-              'Logout',
-              style: TextStyle(fontSize: 18, color: Colors.red),
-            ),
+          _tile(
+            context,
+            icon: Icons.logout_rounded,
+            title: 'Logout',
+            color: AppColors.red,
             onTap: () => _logout(context),
           ),
         ],
       ),
+    );
+  }
+
+  /// Reusable Tile
+  Widget _tile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(title),
+      onTap: onTap,
     );
   }
 
@@ -208,33 +208,17 @@ class DrawerWidget extends StatelessWidget {
       barrierDismissible: false,
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.background,
         title: const Text("Logout"),
         content: const Text("Are you sure you want to logout?"),
         actions: [
           TextButton(
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: AppColors.orangeLight),
-            ),
+            child: const Text("Cancel"),
           ),
 
           TextButton(
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Logout", style: TextStyle(color: Colors.red)),
+            child: const Text("Logout", style: TextStyle(color: AppColors.red)),
           ),
         ],
       ),

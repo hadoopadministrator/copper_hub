@@ -4,7 +4,6 @@ import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/services/api_service.dart';
 import 'package:copper_hub/utils/bank_details_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:copper_hub/widgets/custom_dropdown.dart';
@@ -449,7 +448,6 @@ class _SellCheckoutScreenState extends State<SellCheckoutScreen> {
               TextField(
                 controller: _qtyController,
                 keyboardType: TextInputType.number,
-                cursorColor: AppColors.black,
                 textInputAction: TextInputAction.done,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: AppDecorations.textField(

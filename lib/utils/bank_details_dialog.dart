@@ -1,5 +1,4 @@
 import 'package:copper_hub/routes/app_routes.dart';
-import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/validators.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
@@ -126,7 +125,6 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppColors.background,
       title: Text(
         widget.bankData == null ? "Add Bank Details" : "Update Bank Details",
       ),
@@ -215,13 +213,6 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
       ),
       actions: [
         TextButton(
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            foregroundColor: AppColors.orangeLight,
-          ),
           onPressed: () {
             Navigator.pushNamedAndRemoveUntil(
               context,
@@ -229,7 +220,7 @@ class _BankDetailsDialogState extends State<BankDetailsDialog> {
               (route) => false,
             );
           },
-          child: const Text("Back to Home", style: TextStyle(fontSize: 18)),
+          child: const Text("Back to Home",),
         ),
         CustomButton(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),

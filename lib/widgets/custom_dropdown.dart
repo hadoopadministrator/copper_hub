@@ -7,7 +7,7 @@ class CustomDropdown extends StatelessWidget {
   final String value;
   final List<String> items;
   final Function(String) onChanged;
-  final IconData Function(String)? iconBuilder; // optional icon support
+  final IconData Function(String)? iconBuilder;
 
   const CustomDropdown({
     super.key,
@@ -21,9 +21,11 @@ class CustomDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
+      key: ValueKey(value),
       initialValue: value,
       decoration: AppDecorations.textField(label: label),
       dropdownColor: AppColors.white,
+      borderRadius: BorderRadius.circular(8),
       icon: const Icon(Icons.keyboard_arrow_down),
       items: items.map((item) {
         return DropdownMenuItem(
@@ -31,14 +33,10 @@ class CustomDropdown extends StatelessWidget {
           child: Row(
             children: [
               if (iconBuilder != null) ...[
-                Icon(
-                  iconBuilder!(item),
-                  size: 18,
-                  color: AppColors.orangeDark,
-                ),
+                Icon(iconBuilder!(item), size: 18, color: AppColors.orangeDark),
                 const SizedBox(width: 8),
               ],
-              Text(item),
+              Text(item, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
         );

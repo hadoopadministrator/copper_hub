@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/services/api_service.dart';
-import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
@@ -180,9 +179,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         maxLength: 1,
         enableSuggestions: false,
         autocorrect: false,
-        cursorColor: const Color(0xFF555555),
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        decoration: AppDecorations.textField(label: '', counterText: ''),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+        decoration: AppDecorations.textField(
+          label: '',
+          counterText: '',
+        ).copyWith(contentPadding: const EdgeInsets.symmetric(vertical: 10)),
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: (value) {
           if (value.isNotEmpty && index < 5) {
@@ -203,51 +206,36 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: SafeArea(
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: Center(
             child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              color: AppColors.white,
-              elevation: 8,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Verify OTP',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text('Verify OTP', style: textTheme.titleLarge),
 
                     const SizedBox(height: 8),
 
                     Text(
                       'Enter the OTP sent to $mobileNo',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                      style: textTheme.bodySmall,
                     ),
 
                     const SizedBox(height: 24),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        6,
-                        (index) => Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: otpBox(index),
-                        ),
-                      ),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 8,
+                      children: List.generate(6, (index) => otpBox(index)),
                     ),
+
                     const SizedBox(height: 30),
                     CustomButton(
                       width: double.infinity,
@@ -261,14 +249,11 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     _seconds == 0 && !_isLoading
                         ? TextButton(
                             onPressed: resendOtp,
-                            child: const Text(
-                              "Resend OTP",
-                              style: TextStyle(color: Colors.blue),
-                            ),
+                            child: const Text("Resend OTP"),
                           )
                         : Text(
                             "Resend OTP in $_seconds sec",
-                            style: const TextStyle(color: Colors.grey),
+                            style: textTheme.bodySmall,
                           ),
                   ],
                 ),

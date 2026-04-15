@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/services/api_service.dart';
 import 'package:copper_hub/services/auth_storage.dart';
-import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 
@@ -48,10 +47,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   bool get _isFormValid {
-  return Validators.emailOrMobile(_emailOrMobileController.text.trim()) ==
-          null &&
-      _passwordController.text.trim().isNotEmpty;
-}
+    return Validators.emailOrMobile(_emailOrMobileController.text.trim()) ==
+            null &&
+        _passwordController.text.trim().isNotEmpty;
+  }
 
   @override
   void dispose() {
@@ -62,37 +61,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: Card(
-            margin: const EdgeInsets.only(left: 16.0, right: 16.0),
-            color: AppColors.white,
-            elevation: 8.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey, // Attach Form key
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Align(
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
+                    Center(child: Text('Login', style: textTheme.titleLarge)),
+                    const SizedBox(height: 20),
                     TextFormField(
                       controller: _emailOrMobileController,
                       keyboardType: TextInputType.text,
@@ -109,25 +92,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                       onChanged: (_) => setState(() {}),
                       validator: Validators.emailOrMobile,
-                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Email / Mobile',
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
                       onChanged: (_) => setState(() {}),
-                      // validator: Validators.password,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter password';
                         }
                         return null;
                       },
-                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Password',
                         suffixIcon: IconButton(
@@ -152,15 +132,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           visualDensity: VisualDensity.compact,
-                          activeColor: Colors.blue,
                           onChanged: (value) {
                             setState(() => remember = value ?? false);
                           },
                         ),
-                        Text(
-                          'Remember me',
-                          style: TextStyle(color: AppColors.black),
-                        ),
+                        Text('Remember me'),
                         const Spacer(),
                         TextButton(
                           onPressed: () {
@@ -169,35 +145,27 @@ class _LoginScreenState extends State<LoginScreen> {
                               AppRoutes.forgotPassword,
                             );
                           },
-                          child: Text(
-                            'Forgot password?',
-                            style: TextStyle(color: Colors.blue),
-                          ),
+                          child: Text('Forgot password?'),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     CustomButton(
+                      width: double.infinity,
                       text: 'Login',
                       onPressed: _isFormValid ? _onLoginPressed : null,
                       isLoading: _isLoading,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Don\'t have an account?',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
+                        const Text("Don't have an account?"),
                         TextButton(
                           onPressed: () {
                             Navigator.pushNamed(context, AppRoutes.register);
                           },
-                          child: const Text(
-                            'Register',
-                            style: TextStyle(color: Colors.blue),
-                          ),
+                          child: const Text('Register'),
                         ),
                       ],
                     ),

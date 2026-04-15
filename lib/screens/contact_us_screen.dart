@@ -1,4 +1,3 @@
-import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
@@ -93,6 +92,8 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Contact Us")),
       body: SafeArea(
@@ -104,38 +105,25 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text("Get in Touch", style: textTheme.titleLarge),
+                const SizedBox(height: 8),
                 Text(
-                  "Get in Touch",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "If you have any questions, feedback or need support, feel free to contact us."
+                  "If you have any questions, feedback or need support, feel free to contact us. "
                   "Our team will get back to you as soon as possible.",
                   // textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: textTheme.bodySmall,
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 24),
                 Text(
                   "Send us a message",
-                  style: TextStyle(
-                    fontSize: 18,
+                  style: textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _nameController,
                   textInputAction: TextInputAction.next,
-                  cursorColor: AppColors.black,
                   autofillHints: const [AutofillHints.name],
                   decoration: AppDecorations.textField(label: 'Your Name'),
                   validator: (value) => value == null || value.trim().isEmpty
@@ -147,7 +135,6 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  cursorColor: AppColors.black,
                   autofillHints: const [AutofillHints.email],
                   decoration: AppDecorations.textField(label: "Your Email"),
                   validator: (value) {
@@ -164,7 +151,6 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                 TextFormField(
                   controller: _subjectController,
                   textInputAction: TextInputAction.next,
-                  cursorColor: AppColors.black,
                   decoration: AppDecorations.textField(label: "Subject"),
                   validator: (value) => value == null || value.trim().isEmpty
                       ? 'Subject is required'
@@ -175,7 +161,6 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                   controller: _messageController,
                   keyboardType: TextInputType.multiline,
                   textInputAction: TextInputAction.done,
-                  cursorColor: AppColors.black,
                   maxLines: 4,
                   decoration: AppDecorations.textField(label: "Your Message"),
                   validator: (value) => value == null || value.trim().isEmpty
@@ -185,8 +170,6 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                 const SizedBox(height: 24),
                 CustomButton(
                   text: _isSending ? 'Opening Mail...' : 'Send Message',
-                  backgroundColor: AppColors.orangeDark,
-                  foregroundColor: AppColors.white,
                   width: double.infinity,
                   onPressed: _isSending ? null : _sendEmail,
                 ),

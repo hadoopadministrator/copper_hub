@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:copper_hub/routes/app_routes.dart';
 import 'package:copper_hub/services/api_service.dart';
-import 'package:copper_hub/utils/app_colors.dart';
 import 'package:copper_hub/utils/input_decoration.dart';
 import 'package:copper_hub/widgets/custom_button.dart';
 
@@ -32,7 +31,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       TextEditingController();
   final TextEditingController _ifscController = TextEditingController();
   final TextEditingController _bankNameController = TextEditingController();
-  // final TextEditingController _upiController = TextEditingController();
 
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
@@ -120,16 +118,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: Card(
-            color: AppColors.white,
-            elevation: 8.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
             child: Form(
               key: _formKey, // Attach Form key
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -141,22 +135,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Align(
-                      alignment: Alignment.center,
-                      child: const Text(
+                    Center(
+                      child: Text(
                         'Create Account',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: textTheme.titleLarge,
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     TextFormField(
                       controller: _fullNameController,
                       keyboardType: TextInputType.name,
                       textInputAction: TextInputAction.next,
-                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(label: 'Full Name'),
                       validator: Validators.fullName,
                     ),
@@ -165,7 +154,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Email Address',
                       ),
@@ -181,7 +169,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(10),
                       ],
-                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Mobile Number',
                         counterText: '',
@@ -193,7 +180,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.next,
-                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(
                         label: 'Password',
                         suffixIcon: IconButton(
@@ -216,7 +202,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _addressController,
                       textInputAction: TextInputAction.next,
                       maxLines: 3,
-                      cursorColor: AppColors.black,
                       decoration: AppDecorations.textField(label: 'Address'),
                       validator: Validators.address,
                     ),
@@ -281,12 +266,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                     const SizedBox(height: 30),
-                    const Text(
+                    Text(
                       "Bank Details (Optional)",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: textTheme.titleMedium,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -376,27 +358,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return Validators.bankName(value?.trim() ?? '');
                       },
                     ),
-
-                    // const SizedBox(height: 16),
-                    // TextFormField(
-                    //   controller: _upiController,
-                    //   decoration: AppDecorations.textField(
-                    //     label: 'UPI ID (optional)',
-                    //   ),
-                    //   validator: (value) {
-                    //     if (value == null || value.trim().isEmpty) {
-                    //       return null;
-                    //     }
-                    //     final upi = value.trim();
-                    //     final upiRegex = RegExp(
-                    //       r'^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$',
-                    //     );
-                    //     if (!upiRegex.hasMatch(upi)) {
-                    //       return "Enter valid UPI ID";
-                    //     }
-                    //     return null;
-                    //   },
-                    // ),
                     const SizedBox(height: 30),
                     CustomButton(
                       width: double.infinity,
@@ -408,21 +369,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Already have an account?',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[700],
-                          ),
-                        ),
+                        Text('Already have an account?'),
                         TextButton(
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          child: const Text(
-                            'Login',
-                            style: TextStyle(fontSize: 16, color: Colors.blue),
-                          ),
+                          child: const Text('Login'),
                         ),
                       ],
                     ),

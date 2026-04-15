@@ -61,7 +61,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
         _isLoading = false;
       });
     } else {
-     setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
       _showSnack(response['message']);
     }
   }
@@ -72,52 +72,44 @@ class _MyCartScreenState extends State<MyCartScreen> {
     _loadCart();
   }
 
-  
-
   // ---------------- WEIGHT ----------------
   double getActualWeight(CartItemModel item) {
-  if (item.minWeight < 1) {
-    return item.quantity * item.minWeight;
+    if (item.minWeight < 1) {
+      return item.quantity * item.minWeight;
+    }
+    return item.quantity.toDouble();
   }
-  return item.quantity.toDouble();
-}
-
 
   // ---------------- SUMMARY ----------------
   void _updateSummary() {
-  double totalWeight = 0;
-  double grandTotal = 0;
+    double totalWeight = 0;
+    double grandTotal = 0;
 
-  for (var item in _cartItems) {
-    final weight = getActualWeight(item);
+    for (var item in _cartItems) {
+      final weight = getActualWeight(item);
 
-    final amount = item.quantity * item.pricePerKg;
+      final amount = item.quantity * item.pricePerKg;
 
-    totalWeight += weight;
-    grandTotal += amount;
+      totalWeight += weight;
+      grandTotal += amount;
+    }
+
+    setState(() {
+      _totalWeight = totalWeight;
+      _grandTotal = grandTotal;
+    });
   }
-
-  setState(() {
-    _totalWeight = totalWeight;
-    _grandTotal = grandTotal;
-  });
-}
-
 
   // ---------------- DEBOUNCE UPDATE ----------------
   void _debounceUpdate(int slabId, int qty) {
     _cartDebounce?.cancel();
 
     _cartDebounce = Timer(const Duration(milliseconds: 500), () {
-      _api.updateCartQty(
-        userId: _userId!,
-        slabId: slabId,
-        qty: qty,
-      );
+      _api.updateCartQty(userId: _userId!, slabId: slabId, qty: qty);
     });
   }
 
-// ---------------- LIMITS ----------------
+  // ---------------- LIMITS ----------------
   ({int min, int? max}) getQtyLimits(CartItemModel item) {
     if (item.minWeight < 1) {
       return (min: 1, max: null);
@@ -128,59 +120,51 @@ class _MyCartScreenState extends State<MyCartScreen> {
       max: item.maxWeight == 0 ? null : item.maxWeight.toInt(),
     );
   }
-  
+
   // ---------------- ACTIONS ----------------
- Future<void> _increaseQty(CartItemModel item) async {
-  final limits = getQtyLimits(item);
+  Future<void> _increaseQty(CartItemModel item) async {
+    final limits = getQtyLimits(item);
 
-  if (limits.max != null && item.quantity >= limits.max!) {
-    _showSnack("Max limit reached");
-    return;
+    if (limits.max != null && item.quantity >= limits.max!) {
+      _showSnack("Max limit reached");
+      return;
+    }
+
+    final index = _cartItems.indexOf(item);
+    final newQty = item.quantity + 1;
+
+    final amount = newQty * item.pricePerKg;
+
+    setState(() {
+      _cartItems[index] = item.copyWith(quantity: newQty, totalAmount: amount);
+    });
+
+    _updateSummary();
+    _debounceUpdate(item.slabId, newQty);
   }
 
-  final index = _cartItems.indexOf(item);
-  final newQty = item.quantity + 1;
+  Future<void> _decreaseQty(CartItemModel item) async {
+    final limits = getQtyLimits(item);
 
-  final amount = newQty * item.pricePerKg;
+    if (item.quantity <= limits.min) {
+      _showSnack("Minimum limit is ${limits.min}");
+      return;
+    }
 
-  setState(() {
-    _cartItems[index] = item.copyWith(
-      quantity: newQty,
-      totalAmount: amount,
-    );
-  });
+    final index = _cartItems.indexOf(item);
+    final newQty = item.quantity - 1;
 
-  _updateSummary();
-  _debounceUpdate(item.slabId, newQty);
-}
+    final amount = newQty * item.pricePerKg;
 
+    setState(() {
+      _cartItems[index] = item.copyWith(quantity: newQty, totalAmount: amount);
+    });
 
- Future<void> _decreaseQty(CartItemModel item) async {
-  final limits = getQtyLimits(item);
-
-  if (item.quantity <= limits.min) {
-    _showSnack("Minimum limit is ${limits.min}");
-    return;
+    _updateSummary();
+    _debounceUpdate(item.slabId, newQty);
   }
 
-  final index = _cartItems.indexOf(item);
-  final newQty = item.quantity - 1;
-
-  final amount = newQty * item.pricePerKg;
-
-  setState(() {
-    _cartItems[index] = item.copyWith(
-      quantity: newQty,
-      totalAmount: amount,
-    );
-  });
-
-  _updateSummary();
-  _debounceUpdate(item.slabId, newQty);
-}
-
-
-   Future<void> _removeItem(CartItemModel item) async {
+  Future<void> _removeItem(CartItemModel item) async {
     final index = _cartItems.indexOf(item);
     final removedItem = _cartItems[index];
 
@@ -207,11 +191,11 @@ class _MyCartScreenState extends State<MyCartScreen> {
     }
   }
 
-
-
   // ---------------- UI ----------------
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return Scaffold(
       appBar: AppBar(title: const Text('My Cart')),
       body: _isLoading
@@ -228,98 +212,91 @@ class _MyCartScreenState extends State<MyCartScreen> {
                     itemCount: _cartItems.length,
                     itemBuilder: (context, index) {
                       final item = _cartItems[index];
-                      return Container(
+                      return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // -------- Slab + Remove --------
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Slab: ${item.slabName}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                _qtyButton(
-                                  icon: Icons.close,
-                                  color: AppColors.red,
-                                  onTap: () => _removeItem(item),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            // -------- Price + Amount --------
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '₹ ${item.pricePerKg.toStringAsFixed(2)} / KG',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Text(
-                                  '₹ ${item.totalAmount.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            // -------- Quantity --------
-                            Row(
-                              children: [
-                                Text(
-                                  'Qty',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Row(
-                                  children: [
-                                    _qtyButton(
-                                      icon: Icons.remove,
-                                      onTap: () => _decreaseQty(item),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // -------- Slab + Remove --------
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Slab: ${item.slabName}',
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w600,
                                     ),
-
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
+                                  ),
+                                  _qtyButton(
+                                    icon: Icons.close,
+                                    color: AppColors.red,
+                                    onTap: () => _removeItem(item),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              // -------- Price + Amount --------
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '₹ ${item.pricePerKg.toStringAsFixed(2)} / KG',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  Text(
+                                    '₹ ${item.totalAmount.toStringAsFixed(2)}',
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              // -------- Quantity --------
+                              Row(
+                                children: [
+                                  Text(
+                                    'Qty',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Row(
+                                    children: [
+                                      _qtyButton(
+                                        icon: Icons.remove,
+                                        onTap: () => _decreaseQty(item),
                                       ),
-                                      child: Text(
-                                        item.quantity.toInt().toString(),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
+
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
+                                        child: Text(
+                                          item.quantity.toInt().toString(),
+                                          style: textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
-                                    ),
 
-                                    _qtyButton(
-                                      icon: Icons.add,
-                                      onTap: () => _increaseQty(item),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
+                                      _qtyButton(
+                                        icon: Icons.add,
+                                        onTap: () => _increaseQty(item),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -329,7 +306,7 @@ class _MyCartScreenState extends State<MyCartScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
@@ -350,17 +327,13 @@ class _MyCartScreenState extends State<MyCartScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Total Quantity',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey,
-                                ),
+                                style: textTheme.bodySmall,
                               ),
                               Text(
                                 '$_totalWeight KG',
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                style: textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -369,19 +342,12 @@ class _MyCartScreenState extends State<MyCartScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const Text(
-                                'Grand Total',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey,
-                                ),
-                              ),
+                              Text('Grand Total', style: textTheme.bodySmall),
                               Text(
                                 '₹ ${_grandTotal.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 18,
+                                style: textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green, // highlight
+                                  color: AppColors.greenDark,
                                 ),
                               ),
                             ],
@@ -412,13 +378,19 @@ class _MyCartScreenState extends State<MyCartScreen> {
   }) {
     return InkWell(
       onTap: onTap,
+      splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: color ?? AppColors.textSecondary,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, size: 18, color: AppColors.white),
+        child: Icon(
+          icon,
+          size: 18,
+          color:  AppColors.white ,
+        ),
       ),
     );
   }

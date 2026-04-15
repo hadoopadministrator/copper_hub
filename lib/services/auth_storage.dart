@@ -7,11 +7,8 @@ class AuthStorage {
   static const _keyName = 'name';
   static const _keyEmail = 'email';
   static const _keyMobile = 'mobile';
-
-  
   static const _keyRememberMe = 'rememberMe';
   static const _keyRememberUser = 'rememberUser';
-
 
   /// SAVE REMEMBER ME
   static Future<void> saveRememberMe({
@@ -37,7 +34,7 @@ class AuthStorage {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_keyRememberMe) ?? false;
   }
-  
+
   /// GET REMEMBER USER (EMAIL / MOBILE)
   static Future<String?> getRememberUser() async {
     final prefs = await SharedPreferences.getInstance();
@@ -48,7 +45,6 @@ class AuthStorage {
   static Future<String?> getRememberPassword() async {
     return await SecureStorage.getPassword();
   }
-
 
   static Future<void> saveLoginData({
     required int userId,
@@ -101,21 +97,20 @@ class AuthStorage {
   }
 
   static Future<void> clearAllLocalData() async {
-  final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
-  // Login/session data
-  await prefs.remove(_keyIsLoggedIn);
-  await prefs.remove(_keyUserId);
-  await prefs.remove(_keyName);
-  await prefs.remove(_keyEmail);
-  await prefs.remove(_keyMobile);
+    // Login/session data
+    await prefs.remove(_keyIsLoggedIn);
+    await prefs.remove(_keyUserId);
+    await prefs.remove(_keyName);
+    await prefs.remove(_keyEmail);
+    await prefs.remove(_keyMobile);
 
-  // Remember me data
-  await prefs.remove(_keyRememberMe);
-  await prefs.remove(_keyRememberUser);
+    // Remember me data
+    await prefs.remove(_keyRememberMe);
+    await prefs.remove(_keyRememberUser);
 
-  // Secure storage (password)
-  await SecureStorage.deletePassword();
-}
-
+    // Secure storage (password)
+    await SecureStorage.deletePassword();
+  }
 }

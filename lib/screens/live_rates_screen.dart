@@ -135,6 +135,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Live Prices'),
@@ -150,43 +151,31 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _copperRate == null
-            ? const Center(child: Text('No data available'))
-            : SingleChildScrollView(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _copperRate!['Slabs'].length,
-                  itemBuilder: (context, index) {
-                    final slab = _copperRate!['Slabs'][index];
+            ? Center(
+                child: Text('No data available', style: textTheme.bodyMedium),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                itemCount: _copperRate!['Slabs'].length,
+                itemBuilder: (context, index) {
+                  final slab = _copperRate!['Slabs'][index];
+                  final slabName = slab['SlabName'];
 
-                    final slabName = slab['SlabName'];
+                  // Get min/max using helper
+                  final limits = getQtyLimitsFromSlab(slabName);
+                  final minQty = limits.min;
+                  final maxQty = limits.max;
 
-                    // Get min/max using helper
-                    final limits = getQtyLimitsFromSlab(slabName);
-                    final minQty = limits.min;
-                    final maxQty = limits.max;
-
-                    _qtyControllers.putIfAbsent(index, () {
-                      _quantities[index] ??= minQty;
-                      return TextEditingController(
-                        text: _quantities[index].toString(),
-                      );
-                    });
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.black,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.black.withValues(alpha: 0.2),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
+                  _qtyControllers.putIfAbsent(index, () {
+                    _quantities[index] ??= minQty;
+                    return TextEditingController(
+                      text: _quantities[index].toString(),
+                    );
+                  });
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -194,118 +183,53 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'COPPER PRICE',
-                                style: TextStyle(
-                                  fontSize: 16,
+                              Text(
+                                'Copper Price',
+                                style: textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.white,
-                                  letterSpacing: 0.5,
                                 ),
                               ),
                               Text(
-                                "Last Updated: ${_lastUpdated != null ? DateFormat('HH:mm:a').format(_lastUpdated!) : '--'}",
-                                style: TextStyle(
-                                  color: AppColors.white.withValues(alpha: 0.7),
-                                  fontSize: 16,
-                                ),
+                                "Last Updated: ${_lastUpdated != null ? DateFormat('hh:mm:a').format(_lastUpdated!) : '--'}",
+                                style: textTheme.bodySmall,
                               ),
                             ],
                           ),
+                          const SizedBox(height: 12),
 
                           /// PRICE ROW
                           Row(
                             children: [
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Buy",
-                                      style: TextStyle(
-                                        color: AppColors.white.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '₹ ${slab['BuyPrice']}',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  ],
+                                child: _buildPriceColumn(
+                                  "Buy",
+                                  "₹ ${slab['BuyPrice']}",
+                                  AppColors.orangeDark,
+                                  context,
                                 ),
                               ),
-                              const SizedBox(width: 10),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Sell",
-                                      style: TextStyle(
-                                        color: AppColors.white.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '₹ ${slab['SellPrice']}',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  ],
+                                child: _buildPriceColumn(
+                                  "Sell",
+                                  "₹ ${slab['SellPrice']}",
+                                  AppColors.greenDark,
+                                  context,
                                 ),
                               ),
-                              const SizedBox(width: 10),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Qty",
-                                      style: TextStyle(
-                                        color: AppColors.white.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '$slabName',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  ],
+                                child: _buildPriceColumn(
+                                  "Qty",
+                                  slabName,
+                                  AppColors.textPrimary,
+                                  context,
                                 ),
                               ),
-                              // Expanded(
-                              //   child: Text(
-                              //     'Qty: $slabName',
-                              //     style: TextStyle(
-                              //       fontSize: 13,
-                              //       color: AppColors.white,
-                              //     ),
-                              //   ),
-                              // ),
                             ],
                           ),
 
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 16),
+                          const Divider(),
+                          const SizedBox(height: 16),
 
                           /// ACTION ROW
                           Row(
@@ -313,9 +237,6 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                               Expanded(
                                 child: CustomButton(
                                   text: 'BUY',
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
                                   onPressed: () async {
                                     final navigator = Navigator.of(context);
                                     final messenger = ScaffoldMessenger.of(
@@ -344,10 +265,6 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                                   text: 'SELL',
                                   backgroundColor: AppColors.greenDark,
                                   foregroundColor: AppColors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                    horizontal: 14,
-                                  ),
                                   onPressed: () async {
                                     final navigator = Navigator.of(context);
                                     final messenger = ScaffoldMessenger.of(
@@ -406,59 +323,101 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> {
                               ),
                               const SizedBox(width: 10),
 
-                              Expanded(
+                              /// QTY FIELD
+                              SizedBox(
+                                width: 90,
                                 child: TextField(
                                   controller: _qtyControllers[index],
                                   readOnly: true,
+                                  enableInteractiveSelection: false,
+                                  showCursor: false,
                                   keyboardType: TextInputType.none,
-                                  decoration: AppDecorations.textField(
-                                    label: '',
-                                    suffixIcon: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        InkWell(
-                                          onTap: () =>
-                                              incrementQty(index, maxQty),
-                                          child: const Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: 6,
-                                              horizontal: 8,
-                                            ),
-                                            child: Icon(
-                                              Icons.keyboard_arrow_up,
-                                              size: 24,
-                                            ),
-                                          ),
-                                        ),
-                                        InkWell(
-                                          onTap: () =>
-                                              decrementQty(index, minQty),
-                                          child: const Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: 6,
-                                              horizontal: 8,
-                                            ),
-                                            child: Icon(
-                                              Icons.keyboard_arrow_down,
-                                              size: 24,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
                                   ),
+                                  decoration:
+                                      AppDecorations.textField(
+                                        label: '',
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              vertical: 14,
+                                            ),
+                                        suffixIcon: SizedBox(
+                                          width: 36,
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              InkWell(
+                                                onTap: () =>
+                                                    incrementQty(index, maxQty),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                    vertical: 4,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.keyboard_arrow_up,
+                                                    size: 22,
+                                                  ),
+                                                ),
+                                              ),
+                                              InkWell(
+                                                onTap: () =>
+                                                    decrementQty(index, minQty),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                    vertical: 4,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.keyboard_arrow_down,
+                                                    size: 22,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ).copyWith(
+                                        filled: true,
+                                        fillColor: AppColors.background,
+                                      ),
                                 ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
       ),
+    );
+  }
+
+  Widget _buildPriceColumn(
+    String title,
+    String value,
+    Color valueColor,
+    BuildContext context,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: textTheme.bodySmall),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
     );
   }
 

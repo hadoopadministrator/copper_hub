@@ -1,5 +1,5 @@
 import 'package:copper_hub/routes/app_routes.dart';
-import 'package:copper_hub/utils/app_colors.dart';
+import 'package:copper_hub/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -16,21 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash,
       routes: AppRoutes.routes,
-      theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.background,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.white,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: true,
-          titleTextStyle: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-          iconTheme: IconThemeData(color: AppColors.textPrimary),
-        ),
-      ),
+      theme: AppTheme.lightTheme,
     );
   }
 }

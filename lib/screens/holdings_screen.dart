@@ -43,94 +43,95 @@ class _HoldingsScreenState extends State<HoldingsScreen> {
     }
   }
 
- Widget buildHoldingCard(Map<String, dynamic> holding) {
-  final remainingQty = (holding['RemainingQty'] as num?)?.toDouble() ?? 0;
-  final avgBuyPrice = (holding['BuyPricePerKg'] as num?)?.toDouble() ?? 0;
-  final currentRate = (holding['CurrentRate'] as num?)?.toDouble() ?? 0;
-  final currentValue = (holding['CurrentValue'] as num?)?.toDouble() ?? 0;
-  final investedAmount = (holding['InvestedAmount'] as num?)?.toDouble() ?? 0;
+  Widget buildHoldingCard(Map<String, dynamic> holding) {
+    final textTheme = Theme.of(context).textTheme;
+    final remainingQty = (holding['RemainingQty'] as num?)?.toDouble() ?? 0;
+    final avgBuyPrice = (holding['BuyPricePerKg'] as num?)?.toDouble() ?? 0;
+    final currentRate = (holding['CurrentRate'] as num?)?.toDouble() ?? 0;
+    final currentValue = (holding['CurrentValue'] as num?)?.toDouble() ?? 0;
+    final investedAmount = (holding['InvestedAmount'] as num?)?.toDouble() ?? 0;
 
-  final profitLoss = (holding['ProfitLoss'] as num?)?.toDouble() ??
-      (currentRate - avgBuyPrice) * remainingQty;
+    final profitLoss =
+        (holding['ProfitLoss'] as num?)?.toDouble() ??
+        (currentRate - avgBuyPrice) * remainingQty;
 
-  final profit = profitLoss >= 0;
+    final profit = profitLoss >= 0;
 
-  return Container(
-    padding: const EdgeInsets.all(20),
-    margin: const EdgeInsets.only(bottom: 16),
-    decoration: BoxDecoration(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          holding['SlabName'] ?? 'N/A',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-
-        buildRow("Bought Quantity", "${holding['BoughtQty'] ?? 0} KG"),
-        buildRow("Sold Quantity", "${holding['SoldQty'] ?? 0} KG"),
-        buildRow("Remaining Quantity", "$remainingQty KG"),
-
-        buildRow(
-          "Average Buy Price",
-          "${currencyFormat.format(avgBuyPrice)} / KG",
-        ),
-        buildRow(
-          "Current Price",
-          "${currencyFormat.format(currentRate)} / KG",
-        ),
-
-        buildRow("Invested Amount", currencyFormat.format(investedAmount)),
-        buildRow("Current Value", currencyFormat.format(currentValue)),
-
-        const Divider(height: 24),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Unrealized P/L", style: TextStyle(fontSize: 16)),
+            /// Title
+            Text(
+              holding['SlabName'] ?? 'N/A',
+              style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+
+            buildRow("Bought Quantity", "${holding['BoughtQty'] ?? 0} KG"),
+            buildRow("Sold Quantity", "${holding['SoldQty'] ?? 0} KG"),
+            buildRow("Remaining Quantity", "$remainingQty KG"),
+
+            buildRow(
+              "Average Buy Price",
+              "${currencyFormat.format(avgBuyPrice)} / KG",
+            ),
+            buildRow(
+              "Current Price",
+              "${currencyFormat.format(currentRate)} / KG",
+            ),
+
+            buildRow("Invested Amount", currencyFormat.format(investedAmount)),
+            buildRow("Current Value", currencyFormat.format(currentValue)),
+
+            const SizedBox(height: 12),
+            const Divider(),
+
+            /// Profit/Loss
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  profit
-                      ? Icons.arrow_upward_rounded
-                      : Icons.arrow_downward_rounded,
-                  color: profit ? AppColors.greenLight : Colors.red,
-                  size: 18,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  "${profit ? "+" : "-"}${currencyFormat.format(profitLoss.abs())}",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: profit ? Colors.green : Colors.red,
-                  ),
+                Text("Unrealized P/L", style: textTheme.bodyMedium),
+                Row(
+                  children: [
+                    Icon(
+                      profit
+                          ? Icons.arrow_upward_rounded
+                          : Icons.arrow_downward_rounded,
+                      color: profit ? AppColors.greenLight : Colors.red,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "${profit ? "+" : "-"}${currencyFormat.format(profitLoss.abs())}",
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: profit ? AppColors.greenDark : AppColors.red,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ],
         ),
-      ],
-    ),
-  );
-}
-
+      ),
+    );
+  }
 
   Widget buildRow(String title, String value) {
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16)),
+          Text(title, style: textTheme.bodyMedium),
           Text(
             value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -138,9 +139,8 @@ class _HoldingsScreenState extends State<HoldingsScreen> {
   }
 
   Widget buildEmpty() {
-    return const Center(
-      child: Text("No holdings yet", style: TextStyle(fontSize: 16)),
-    );
+    final textTheme = Theme.of(context).textTheme;
+    return Center(child: Text("No holdings yet", style: textTheme.bodyMedium));
   }
 
   @override
@@ -151,13 +151,12 @@ class _HoldingsScreenState extends State<HoldingsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : holdings.isEmpty
           ? buildEmpty()
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: ListView.builder(
-                itemCount: holdings.length,
-                itemBuilder: (context, index) =>
-                    buildHoldingCard(holdings[index]),
-              ),
+          : ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              itemCount: holdings.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              itemBuilder: (context, index) =>
+                  buildHoldingCard(holdings[index]),
             ),
     );
   }
