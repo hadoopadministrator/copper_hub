@@ -22,6 +22,7 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
 
   List<dynamic> cartItems = [];
   bool _loading = true;
+  bool _isPaying = false;
 
   String? userEmail;
   String? userMobile;
@@ -36,8 +37,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     'Self Pickup',
   ];
 
-  Timer? _priceTimer;
-
   // ================= INIT =================
   @override
   void initState() {
@@ -46,13 +45,21 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
     _initCheckout();
 
     paymentService.initPayment(
-      onSuccess: (paymentId) {
-        _placeOrder(paymentId); // success calls placeOrder
+      onSuccess: (paymentId) async {
+        if (mounted) {
+          setState(() => _isPaying = false);
+        }
+
+        await _placeOrder(paymentId); // success calls placeOrder
       },
       onError: (message) {
+        if (mounted) {
+          setState(() => _isPaying = false);
+        }
+
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Payment Failed")));
+        ).showSnackBar(SnackBar(content: Text("Payment Failed: $message")));
         Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.liveRates,
@@ -171,7 +178,6 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
 
   @override
   void dispose() {
-    _priceTimer?.cancel();
     paymentService.dispose();
     super.dispose();
   }
@@ -229,19 +235,18 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               ),
 
               const SizedBox(height: 24),
-              if (_selectedOption == 'Physical Delivery' ||
-                  _selectedOption == 'Self Pickup')
+              if (_selectedOption != 'Digital Wallet')
                 SummaryRowCard(
                   label: 'GST (18%)',
                   value: "₹${gst.toStringAsFixed(2)}",
                 ),
-              const SizedBox(height: 24),
-              if (_selectedOption == 'Physical Delivery')
+              if (_selectedOption == 'Physical Delivery') ...[
+                const SizedBox(height: 24),
                 SummaryRowCard(
                   label: 'Courier Charges',
                   value: "₹${courierCharges.toStringAsFixed(2)}",
-                  // totalWeight.toStringAsFixed(2),
                 ),
+              ],
               const SizedBox(height: 24),
               SummaryRowCard(
                 label: 'Sub Total',
@@ -256,19 +261,27 @@ class _ByCheckoutScreenState extends State<ByCheckoutScreen> {
               CustomButton(
                 width: double.infinity,
                 text: 'Confirm Checkout',
-                onPressed: () {
-                  if (userEmail == null || userMobile == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("User details not loaded")),
-                    );
-                    return;
-                  }
-                  paymentService.openCheckout(
-                    amount: finalTotal,
-                    email: userEmail!,
-                    contact: userMobile!,
-                  );
-                },
+                isLoading: _isPaying,
+                onPressed: _isPaying
+                    ? null
+                    : () {
+                        if (userEmail == null || userMobile == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("User details not loaded"),
+                            ),
+                          );
+                          return;
+                        }
+                        setState(() {
+                          _isPaying = true;
+                        });
+                        paymentService.openCheckout(
+                          amount: finalTotal,
+                          email: userEmail!,
+                          contact: userMobile!,
+                        );
+                      },
               ),
             ],
           ),
