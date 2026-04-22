@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         LengthLimitingTextInputFormatter(50),
                       ],
                       onChanged: (_) => setState(() {}),
-                      validator: Validators.emailOrMobile,
+                      //validator: Validators.emailOrMobile,
                       decoration: AppDecorations.textField(
                         label: 'Email / Mobile',
                       ),
@@ -102,12 +102,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
                       onChanged: (_) => setState(() {}),
-                      validator: (value) {
+                      /*validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter password';
                         }
                         return null;
-                      },
+                      },*/
                       decoration: AppDecorations.textField(
                         label: 'Password',
                         suffixIcon: IconButton(
